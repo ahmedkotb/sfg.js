@@ -60,37 +60,43 @@ SFG.prototype.mousedown = function(e){
     var x = e.pageX - canvas.offsetLeft;
     var y = e.pageY - canvas.offsetTop;
     var state = this.sfg.state;
+    var sfg = this.sfg;
     if (state == STATES.ADD_NODE){
-        this.sfg.newNode = null;
-        this.sfg.state = STATES.NORMAL;
-        this.sfg.addNode(x,y);
+        sfg.newNode = null;
+        sfg.state = STATES.NORMAL;
+        sfg.addNode(x,y);
     }else if (state == STATES.NORMAL){
 
-        var selected = this.sfg.find(x,y);
-        this.sfg.selectNode(selected);
-        if (selected)
-            this.sfg.state = STATES.NODE_MOVE;
+        var selected = sfg.find(x,y);
+        if (selected instanceof Node){
+            sfg.selectNode(selected);
+            if (selected)
+                sfg.state = STATES.NODE_MOVE;
+        }else if (selected instanceof LineEdge){
+            selected.setSelected();
+            sfg.redraw();
+        }
 
     }else if (state == STATES.EDGE_WAIT_NODE1){
-        var selected = this.sfg.find(x,y);
-        this.sfg.selectNode(selected);
+        var selected = sfg.findNode(x,y);
+        sfg.selectNode(selected);
         if (selected){
-            this.sfg.state = STATES.EDGE_WAIT_NODE2;
-            this.sfg.edgeStartNode = selected;
-            this.sfg.newEdge = new LineEdge(selected,null);
+            sfg.state = STATES.EDGE_WAIT_NODE2;
+            sfg.edgeStartNode = selected;
+            sfg.newEdge = new LineEdge(selected,null);
         }
     }else if (state == STATES.EDGE_WAIT_NODE2){
-        var selected = this.sfg.find(x,y);
+        var selected = sfg.findNode(x,y);
         if (selected == null){
-            this.sfg.edgeStartNode = null;
-            this.sfg.newEdge = null;
+            sfg.edgeStartNode = null;
+            sfg.newEdge = null;
             return;
         }
-        var edge = new LineEdge(this.sfg.edgeStartNode,selected);
-        this.sfg.addEdge(edge);
-        this.sfg.selectNode(null);
-        this.sfg.state = STATES.NORMAL;
-        this.sfg.redraw();
+        var edge = new LineEdge(sfg.edgeStartNode,selected);
+        sfg.addEdge(edge);
+        sfg.selectNode(null);
+        sfg.state = STATES.NORMAL;
+        sfg.redraw();
     }
 }
 
@@ -161,7 +167,7 @@ SFG.prototype.selectNode = function(node){
         this.redraw();
 }
 
-SFG.prototype.find = function(x,y){
+SFG.prototype.findNode = function(x,y){
     var nodes = this.nodes;
     var selected = null;
     for (var i=0;i<nodes.length;i++){
@@ -174,6 +180,25 @@ SFG.prototype.find = function(x,y){
     return selected;
 }
 
+SFG.prototype.findEdge = function(x,y){
+    var edges = this.edges;
+    var selected = null;
+    for (var i=0;i<edges.length;i++){
+        var edge = this.edges[i];
+        if (edge.nearPoint(x,y)){
+            selected = edge;
+            break;
+        }
+    }
+    return selected;
+}
+
+SFG.prototype.find = function(x,y){
+    var node = this.findNode(x,y);
+    if (node != null)
+        return node;
+    return this.findEdge(x,y);
+}
 
 SFG.prototype.addNode = function(x,y){
     var node = new Node();
@@ -288,6 +313,19 @@ LineEdge.prototype.draw = function(ctx){
     ctx.stroke();
 }
 
+LineEdge.prototype.nearPoint = function(x,y){
+    var x1 = this.startNode.x;
+    var y1 = this.startNode.y;
+    var x2 = this.endNode.x;
+    var y2 = this.endNode.y;
+    var mag = ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+    var u = ((x-x1)*(x2-x1) + (y-y1)*(y2-y1))/mag;
+    var xp = x1 + u*(x2-x1);
+    var yp = y1 + u*(y2-y1);
+    var dist = Math.sqrt((xp-x)*(xp-x) + (yp-y)*(yp-y));
+    return dist < 10;
+}
+
 LineEdge.prototype.drawToPoint = function(ctx,x,y){
     ctx.beginPath();
     ctx.moveTo(this.startNode.x,this.startNode.y);
@@ -295,3 +333,6 @@ LineEdge.prototype.drawToPoint = function(ctx,x,y){
     ctx.stroke();
 }
 
+LineEdge.prototype.setSelected = function(){
+    this.color = "#0000FF";
+}
