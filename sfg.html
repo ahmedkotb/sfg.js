@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <script type="text/javascript" src="sfg.js"></script>
+        <script type="text/javascript">
+            sfg = null;
+            function init(){
+                var canvas = document.getElementById("canvas");
+                sfg = new SFG(canvas);
+            }
+            function addNode(){
+                sfg.startAddingNode();
+            }
+            function addEdge(){
+                sfg.startAddingEdge();
+            }
+            function deleteNode(){
+                sfg.deleteNode();
+            }
+        </script>
+  </head>
+  <body onload = "init()">
+      <div align="center">
+          <h2>SFG</h2>
+          <button id= "addNode" onclick="addNode()" > add node </button>
+          <button id= "deleteNode" onclick="deleteNode()" > delete node</button>
+          <button id= "addEdge" onclick="addEdge()" > add edge </button>
+          </br>
+          <canvas id="canvas" width="400" height="400" style="border:solid;">
+            sfg canvas
+          </canvas>
+      </div>
+
+      <div id="debug">
+      </div>
+  </body>
+</html>
