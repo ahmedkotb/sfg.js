@@ -1,5 +1,5 @@
 DEFAULT_RADIUS = 15
-DEFAULT_COLOR = "#10FF63"
+DEFAULT_COLOR = "#228b22"
 DEFAULT_SELECTED_COLOR = "#0000FF"
 
 STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
@@ -221,6 +221,7 @@ Node.prototype.draw = function(ctx){
     ctx.beginPath();
     ctx.arc(this.x,this.y,this.radius,0,2*Math.PI,false);
     ctx.fillStyle = this.color;
+    ctx.strokeStyle = this.color;
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#000000";
@@ -243,12 +244,47 @@ Node.prototype.pointInside = function(x,y){
 function LineEdge(startNode,endNode){
     this.startNode = startNode;
     this.endNode = endNode;
+    this.color = "#000000";
+    this.arrowColor = "#800000";
 }
 
 LineEdge.prototype.draw = function(ctx){
     ctx.beginPath();
     ctx.moveTo(this.startNode.x,this.startNode.y);
     ctx.lineTo(this.endNode.x,this.endNode.y);
+    ctx.strokeStyle = this.color;
+    ctx.stroke();
+
+    var r = 10;
+    var arrowAng = 45;
+
+    var midX = (this.startNode.x+this.endNode.x)/2.0;
+    var midY = (this.startNode.y+this.endNode.y)/2.0;
+    var x1,x2,y1,y2;
+    if (this.startNode.x == this.endNode.x){
+        x1 = midX - r * Math.sin(toRadians(arrowAng));
+        x2 = midX + r * Math.sin(toRadians(arrowAng));
+        var sign = 0;
+        if (this.startNode.y - this.endNode.y < 0) sign = -1;
+        else sign = 1;
+        y1 = midY + sign * r * Math.cos(toRadians(arrowAng));
+        y2 = y1;
+    }else{
+        var ang = Math.atan2(this.startNode.y-this.endNode.y
+                ,this.startNode.x-this.endNode.x);
+        var ang1 = ang + Math.tan(toRadians(arrowAng));
+        var ang2 = ang - Math.tan(toRadians(arrowAng));
+        x1 = midX + r * Math.cos(ang1);
+        x2 = midX + r * Math.cos(ang2);
+        y1 = midY + r * Math.sin(ang1);
+        y2 = midY + r * Math.sin(ang2);
+    }
+    ctx.beginPath();
+    ctx.strokeStyle = this.arrowColor;
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(midX,midY);
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(midX,midY);
     ctx.stroke();
 }
 
