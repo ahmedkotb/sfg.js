@@ -315,15 +315,18 @@ function LineEdge(startNode,endNode){
     this.endNode = endNode;
     this.color = "#000000";
     this.arrowColor = "#800000";
+    this.label = "a";
 }
 
 LineEdge.prototype.draw = function(ctx){
+    //drawing the edge
     ctx.beginPath();
     ctx.moveTo(this.startNode.x,this.startNode.y);
     ctx.lineTo(this.endNode.x,this.endNode.y);
     ctx.strokeStyle = this.color;
     ctx.stroke();
 
+    //drawing the arrow
     var r = 10;
     var arrowAng = 45;
 
@@ -355,6 +358,10 @@ LineEdge.prototype.draw = function(ctx){
     ctx.moveTo(x2,y2);
     ctx.lineTo(midX,midY);
     ctx.stroke();
+
+    //drawing the label
+    var width = ctx.measureText(this.label).width;
+    ctx.fillText(this.label,midX-width/2.0,midY+10);
 }
 
 LineEdge.prototype.nearPoint = function(x,y){
