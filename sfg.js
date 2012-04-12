@@ -1,5 +1,6 @@
 DEFAULT_RADIUS = 15
 DEFAULT_COLOR = "#228b22"
+DEFAULT_EDGE_COLOR = "#000000"
 DEFAULT_SELECTED_COLOR = "#0000FF"
 
 STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
@@ -43,6 +44,8 @@ function SFG(canvas){
         this.state = STATES.NORMAL;
         this.selectedNode = null;
 
+        this.selected = null;
+
         this.edgeStartNode = null;
         this.newNode = null;
         this.newEdge = null;
@@ -68,18 +71,14 @@ SFG.prototype.mousedown = function(e){
     }else if (state == STATES.NORMAL){
 
         var selected = sfg.find(x,y);
-        if (selected instanceof Node){
-            sfg.selectNode(selected);
-            if (selected)
-                sfg.state = STATES.NODE_MOVE;
-        }else if (selected instanceof LineEdge){
-            selected.setSelected();
-            sfg.redraw();
-        }
+        sfg.selectItem(selected);
 
+        if (selected instanceof Node){
+            sfg.state = STATES.NODE_MOVE;
+        }
     }else if (state == STATES.EDGE_WAIT_NODE1){
         var selected = sfg.findNode(x,y);
-        sfg.selectNode(selected);
+        sfg.selectItem(selected);
         if (selected){
             sfg.state = STATES.EDGE_WAIT_NODE2;
             sfg.edgeStartNode = selected;
@@ -87,6 +86,7 @@ SFG.prototype.mousedown = function(e){
         }
     }else if (state == STATES.EDGE_WAIT_NODE2){
         var selected = sfg.findNode(x,y);
+        sfg.state = STATES.NORMAL;
         if (selected == null){
             sfg.edgeStartNode = null;
             sfg.newEdge = null;
@@ -94,8 +94,7 @@ SFG.prototype.mousedown = function(e){
         }
         var edge = new LineEdge(sfg.edgeStartNode,selected);
         sfg.addEdge(edge);
-        sfg.selectNode(null);
-        sfg.state = STATES.NORMAL;
+        sfg.selectItem(null);
         sfg.redraw();
     }
 }
@@ -114,19 +113,22 @@ SFG.prototype.mousemove = function(e){
     var x = e.pageX - canvas.offsetLeft;
     var y = e.pageY - canvas.offsetTop;
     var state = this.sfg.state;
-    var node = this.sfg.selectedNode;
+    var sfg = this.sfg;
+    var node = null;
+    if (sfg.selected instanceof Node)
+        node = sfg.selected;
     if (state == STATES.NODE_MOVE && node != null){
         node.x = x;
         node.y = y;
-        this.sfg.redraw();
+        sfg.redraw();
     }else if (state == STATES.ADD_NODE){
-        this.sfg.newNode.x = x;
-        this.sfg.newNode.y = y;
-        this.sfg.redraw();
-        this.sfg.newNode.draw(this.sfg.ctx);
+        sfg.newNode.x = x;
+        sfg.newNode.y = y;
+        sfg.redraw();
+        sfg.newNode.draw(sfg.ctx);
     }else if (state == STATES.EDGE_WAIT_NODE2){
-        this.sfg.redraw();
-        this.sfg.newEdge.drawToPoint(this.sfg.ctx,x,y);
+        sfg.redraw();
+        sfg.newEdge.drawToPoint(sfg.ctx,x,y);
     }
 }
 
@@ -134,35 +136,37 @@ SFG.prototype.startAddingNode = function(){
     this.newNode = new Node();
     this.newNode.name = "new";
     this.state = STATES.ADD_NODE;
-    if (this.selectedNode != null){
-        this.selectedNode.setUnselected();
-        this.selectedNode = null;
+
+    if (this.selected != null){
+        this.selected.setUnselected();
+        this.selected = null;
     }
 }
 
 SFG.prototype.startAddingEdge = function(){
-    this.edgeStartNode = this.selectedNode;
-    if (this.selectedNode == null)
-        this.state = STATES.EDGE_WAIT_NODE1;
-    else{
-        this.newEdge = new LineEdge(this.selectedNode,null);
+    if (this.selected instanceof Node){
+        this.edgeStartNode = this.selected;
+        this.newEdge = new LineEdge(this.selected,null);
         this.state = STATES.EDGE_WAIT_NODE2;
+    }else{
+        this.state = STATES.EDGE_WAIT_NODE1;
     }
 }
 
-SFG.prototype.selectNode = function(node){
-    var oldNode = this.selectedNode;
+SFG.prototype.selectItem = function(item){
+    var oldItem = this.selected;
     var needRedraw = false;
-    if (oldNode != null){
-        oldNode.setUnselected();
+    if (oldItem != null){
+        oldItem.setUnselected();
         needRedraw = true;
     }
-    if (node != null){
-        node.setSelected();
+    if (item != null){
+        item.setSelected();
         needRedraw = true;
     }
-    this.selectedNode = node;
-    this.edgeStartNode = node;
+    this.selected = item;
+    if (item instanceof Node)
+        this.edgeStartNode = item;
     if (needRedraw)
         this.redraw();
 }
@@ -214,11 +218,7 @@ SFG.prototype.addEdge = function(edge){
 }
 
 SFG.prototype.deleteNode = function(){
-    if (this.state == STATES.NORMAL && this.selectedNode != null){
-        this.selectedNode == null;
-    }else{
-        alert("please select a node first");
-    }
+
 }
 
 SFG.prototype.redraw = function(){
@@ -335,4 +335,8 @@ LineEdge.prototype.drawToPoint = function(ctx,x,y){
 
 LineEdge.prototype.setSelected = function(){
     this.color = "#0000FF";
+}
+
+LineEdge.prototype.setUnselected = function(){
+    this.color = DEFAULT_EDGE_COLOR;
 }
