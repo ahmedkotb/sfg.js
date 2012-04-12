@@ -13,8 +13,8 @@
             function addEdge(){
                 sfg.startAddingEdge();
             }
-            function deleteNode(){
-                sfg.deleteNode();
+            function deleteItem(){
+                sfg.deleteSelected();
             }
         </script>
   </head>
@@ -22,7 +22,7 @@
       <div align="center">
           <h2>SFG</h2>
           <button id= "addNode" onclick="addNode()" > add node </button>
-          <button id= "deleteNode" onclick="deleteNode()" > delete node</button>
+          <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
           <button id= "addEdge" onclick="addEdge()" > add edge </button>
           </br>
           <canvas id="canvas" width="400" height="400" style="border:solid;">

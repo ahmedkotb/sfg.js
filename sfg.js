@@ -1,4 +1,4 @@
-DEFAULT_RADIUS = 15
+DEFAULT_RADIUS = 12
 DEFAULT_COLOR = "#228b22"
 DEFAULT_EDGE_COLOR = "#000000"
 DEFAULT_SELECTED_COLOR = "#0000FF"
@@ -38,6 +38,9 @@ function SFG(canvas){
         this.ctx = canvas.getContext("2d");
         this.canvas.sfg = this;
         this.canvas.ctx = this.ctx;
+
+        this.graph = {};
+        this.nodeCounter = 0;
 
         this.nodes = [];
         this.edges = [];
@@ -133,7 +136,7 @@ SFG.prototype.mousemove = function(e){
 }
 
 SFG.prototype.startAddingNode = function(){
-    this.newNode = new Node();
+    this.newNode = new Node(-1);
     this.newNode.name = "new";
     this.state = STATES.ADD_NODE;
 
@@ -205,7 +208,9 @@ SFG.prototype.find = function(x,y){
 }
 
 SFG.prototype.addNode = function(x,y){
-    var node = new Node();
+    var node = new Node(this.nodeCounter);
+    this.nodeCounter++;
+    this.graph[node.id] = {};
     node.x = x;
     node.y = y;
     this.nodes.push(node);
@@ -214,32 +219,69 @@ SFG.prototype.addNode = function(x,y){
 
 SFG.prototype.addEdge = function(edge){
     this.edges.push(edge);
-    edge.startNode.edges.push(edge);
+    this.graph[edge.startNode.id][edge.endNode.id] = edge;
 }
 
-SFG.prototype.deleteNode = function(){
+SFG.prototype.deleteSelected = function(){
+    if (this.selected instanceof Node){
+        var id = this.selected.id;
+        var nodes = this.nodes;
+        var index = -1;
+        for (var i=0;i<nodes.length;i++){
+            if (nodes[i].id == id)
+                index = i;
+            var e = this.graph[nodes[i].id][id];
+            if (e != undefined)
+                this.deleteEdge(e);
+            e = this.graph[id][nodes[i].id];
+            if (e != undefined)
+                this.deleteEdge(e);
+        }
+        this.nodes.splice(index,1);
+    }else if (this.selected instanceof LineEdge){
+        this.deleteEdge(this.selected);
+    }
 
+    this.selectItem(null);
+}
+
+SFG.prototype.deleteEdge = function(edge){
+    var from = edge.startNode;
+    var to = edge.endNode;
+    var index = -1;
+    for (var i=0;i<this.edges.length;i++){
+        var e = this.edges[i];
+        if (e.startNode.id == from.id && e.endNode.id == to.id){
+            index = i;
+            break;
+        }
+    }
+
+    if (index != -1)
+        this.edges.splice(index,1);
+    delete this.graph[from.id][to.id];
 }
 
 SFG.prototype.redraw = function(){
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
     var nodes = this.nodes;
     var edges = this.edges;
+
     for (var i=0;i<edges.length;i++)
         edges[i].draw(this.ctx);
+
     for (var i=0;i<nodes.length;i++)
         nodes[i].draw(this.ctx);
 }
 
 //--------------------------------------------
-
-function Node(){
-    this.name = "node";
+function Node(id){
+    this.id = id;
+    this.name = "node " + this.id;
     this.x = 0;
     this.y = 0;
     this.radius = DEFAULT_RADIUS;
     this.color = DEFAULT_COLOR;
-    this.edges = [];
 }
 
 Node.prototype.draw = function(ctx){
