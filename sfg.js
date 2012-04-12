@@ -218,8 +218,10 @@ SFG.prototype.addNode = function(x,y){
 }
 
 SFG.prototype.addEdge = function(edge){
-    this.edges.push(edge);
-    this.graph[edge.startNode.id][edge.endNode.id] = edge;
+    if (this.graph[edge.startNode.id][edge.endNode.id] == undefined){
+        this.edges.push(edge);
+        this.graph[edge.startNode.id][edge.endNode.id] = edge;
+    }
 }
 
 SFG.prototype.deleteSelected = function(){
