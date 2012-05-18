@@ -29,10 +29,6 @@ function setPixelColor(data,x,y,color){
 //--------------------------------------------
 function SFG(canvas){
     if (canvas.getContext){
-        this.scaleX = 100;
-        this.scaleY = 100;
-        this.panX = 00;
-        this.panY = 00;
 
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
@@ -219,9 +215,11 @@ SFG.prototype.addNode = function(x,y){
 
 SFG.prototype.addEdge = function(edge){
     if (this.graph[edge.startNode.id][edge.endNode.id] == undefined){
+        //TODO:check for self edges
         this.edges.push(edge);
         this.graph[edge.startNode.id][edge.endNode.id] = edge;
     }
+    //debug("no of edges = " + this.edges.length);
 }
 
 SFG.prototype.deleteSelected = function(){
