@@ -51,6 +51,13 @@ function SFG(canvas){
         canvas.addEventListener('mousedown',this.mousedown,false);
         canvas.addEventListener('mouseup',this.mouseup,false);
         canvas.addEventListener('mousemove',this.mousemove,false);
+
+        //Demo example for testing
+        this.addNode(100,150);
+        this.addNode(250,150);
+        e = new ArcEdge(this.nodes[0],this.nodes[1]);
+        this.addEdge(e);
+        this.redraw();
     }else{
         alert("canvas not supported!");
     }
