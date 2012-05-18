@@ -10,8 +10,11 @@
             function addNode(){
                 sfg.startAddingNode();
             }
-            function addEdge(){
-                sfg.startAddingEdge();
+            function addLineEdge(){
+                sfg.startAddingLineEdge();
+            }
+            function addArcEdge(){
+                sfg.startAddingArcEdge();
             }
             function deleteItem(){
                 sfg.deleteSelected();
@@ -23,7 +26,8 @@
           <h2>SFG</h2>
           <button id= "addNode" onclick="addNode()" > add node </button>
           <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
-          <button id= "addEdge" onclick="addEdge()" > add edge </button>
+          <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
+          <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
           </br>
           <canvas id="canvas" width="400" height="400" style="border:solid;">
             sfg canvas

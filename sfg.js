@@ -45,7 +45,6 @@ function SFG(canvas){
 
         this.selected = null;
 
-        this.edgeStartNode = null;
         this.newNode = null;
         this.newEdge = null;
 
@@ -76,22 +75,23 @@ SFG.prototype.mousedown = function(e){
             sfg.state = STATES.NODE_MOVE;
         }
     }else if (state == STATES.EDGE_WAIT_NODE1){
+        //sfg.newEdge must be initialized to empty edge
+        //either by startAddingLineEdge or arc edge methods
         var selected = sfg.findNode(x,y);
         sfg.selectItem(selected);
         if (selected){
             sfg.state = STATES.EDGE_WAIT_NODE2;
-            sfg.edgeStartNode = selected;
-            sfg.newEdge = new LineEdge(selected,null);
+            sfg.newEdge.setStartNode(selected);
         }
     }else if (state == STATES.EDGE_WAIT_NODE2){
         var selected = sfg.findNode(x,y);
         sfg.state = STATES.NORMAL;
         if (selected == null){
-            sfg.edgeStartNode = null;
             sfg.newEdge = null;
             return;
         }
-        var edge = new LineEdge(sfg.edgeStartNode,selected);
+        var edge = sfg.newEdge;
+        edge.setEndNode(selected);
         sfg.addEdge(edge);
         sfg.selectItem(null);
         sfg.redraw();
@@ -142,12 +142,22 @@ SFG.prototype.startAddingNode = function(){
     }
 }
 
-SFG.prototype.startAddingEdge = function(){
+SFG.prototype.startAddingLineEdge = function(){
     if (this.selected instanceof Node){
-        this.edgeStartNode = this.selected;
         this.newEdge = new LineEdge(this.selected,null);
         this.state = STATES.EDGE_WAIT_NODE2;
     }else{
+        this.newEdge = new LineEdge(null,null);
+        this.state = STATES.EDGE_WAIT_NODE1;
+    }
+}
+
+SFG.prototype.startAddingArcEdge = function(){
+    if (this.selected instanceof Node){
+        this.newEdge = new ArcEdge(this.selected,null);
+        this.state = STATES.EDGE_WAIT_NODE2;
+    }else{
+        this.newEdge = new ArcEdge(null,null);
         this.state = STATES.EDGE_WAIT_NODE1;
     }
 }
@@ -164,8 +174,7 @@ SFG.prototype.selectItem = function(item){
         needRedraw = true;
     }
     this.selected = item;
-    if (item instanceof Node)
-        this.edgeStartNode = item;
+
     if (needRedraw)
         this.redraw();
 }
@@ -316,6 +325,14 @@ function LineEdge(startNode,endNode){
     this.label = "a";
 }
 
+LineEdge.prototype.setStartNode = function(startNode){
+    this.startNode = startNode;
+}
+
+LineEdge.prototype.setEndNode = function(endNode){
+    this.endNode = endNode;
+}
+
 LineEdge.prototype.draw = function(ctx){
     //drawing the edge
     ctx.beginPath();
@@ -389,3 +406,71 @@ LineEdge.prototype.setSelected = function(){
 LineEdge.prototype.setUnselected = function(){
     this.color = DEFAULT_EDGE_COLOR;
 }
+
+//---------------------------
+function ArcEdge(startNode,endNode){
+    this.startNode = startNode;
+    this.endNode = endNode;
+    this.controlPoint = {x:0,y:0};
+
+    if (this.startNode != null && this.endNode != null){
+        this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
+        this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
+    }
+
+    this.color = "#000000";
+    this.arrowColor = "#800000";
+    this.label = "a";
+}
+
+ArcEdge.prototype.setStartNode = function(startNode){
+    this.startNode = startNode;
+    //re-estimate control point location
+    if (this.startNode != null && this.endNode != null){
+        this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
+        this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
+    }
+}
+
+ArcEdge.prototype.setEndNode = function(endNode){
+    this.endNode = endNode;
+    //re-estimate control point location
+    if (this.startNode != null && this.endNode != null){
+        this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
+        this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
+    }
+}
+
+ArcEdge.prototype.draw = function(ctx){
+    //drawing the edge
+    ctx.beginPath();
+    ctx.moveTo(this.startNode.x,this.startNode.y);
+    ctx.quadraticCurveTo(this.controlPoint.x,this.controlPoint.y,
+            this.endNode.x,this.endNode.y);
+    ctx.strokeStyle = this.color;
+    ctx.stroke();
+
+    //drawing the arrow
+
+    //drawing the label
+}
+
+ArcEdge.prototype.nearPoint = function(x,y){
+    return false;
+}
+
+ArcEdge.prototype.drawToPoint = function(ctx,x,y){
+    ctx.beginPath();
+    //ctx.moveTo(this.startNode.x,this.startNode.y);
+    //ctx.lineTo(x,y);
+    ctx.stroke();
+}
+
+ArcEdge.prototype.setSelected = function(){
+    this.color = "#0000FF";
+}
+
+ArcEdge.prototype.setUnselected = function(){
+    this.color = DEFAULT_EDGE_COLOR;
+}
+
