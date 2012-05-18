@@ -450,8 +450,57 @@ ArcEdge.prototype.draw = function(ctx){
     ctx.strokeStyle = this.color;
     ctx.stroke();
 
-    //drawing the arrow
+    //draw control lines
+    ctx.beginPath();
+    ctx.moveTo(this.startNode.x,this.startNode.y);
+    ctx.lineTo(this.controlPoint.x,this.controlPoint.y);
+    ctx.lineTo(this.endNode.x,this.endNode.y);
+    ctx.strokeStyle = "#C0C0C0";
+    ctx.stroke();
 
+    //drawing the arrow
+    //first get the midpoint on the curve (t=0.5)
+    var t = 0.5;
+    var x = 0,y = 0;
+    var p0x = this.startNode.x, p0y = this.startNode.y;
+    var p1x = this.controlPoint.x, p1y = this.controlPoint.y;
+    var p2x = this.endNode.x, p2y = this.endNode.y;
+    x = (1-t)*(1-t)*p0x + 2*(1-t)*t*p1x + t*t*p2x;
+    y = (1-t)*(1-t)*p0y + 2*(1-t)*t*p1y + t*t*p2y;
+
+    //second draw the arrow
+    var r = 10;
+    var arrowAng = 45;
+
+    var midX = x;
+    var midY = y;
+    var x1,x2,y1,y2;
+    if (this.startNode.x == this.endNode.x){
+        x1 = midX - r * Math.sin(toRadians(arrowAng));
+        x2 = midX + r * Math.sin(toRadians(arrowAng));
+        var sign = 0;
+        if (this.startNode.y - this.endNode.y < 0) sign = -1;
+        else sign = 1;
+        y1 = midY + sign * r * Math.cos(toRadians(arrowAng));
+        y2 = y1;
+    }else{
+        var ang = Math.atan2(this.startNode.y-this.endNode.y
+                ,this.startNode.x-this.endNode.x);
+        var ang1 = ang + Math.tan(toRadians(arrowAng));
+        var ang2 = ang - Math.tan(toRadians(arrowAng));
+        x1 = midX + r * Math.cos(ang1);
+        x2 = midX + r * Math.cos(ang2);
+        y1 = midY + r * Math.sin(ang1);
+        y2 = midY + r * Math.sin(ang2);
+    }
+
+    ctx.beginPath();
+    ctx.strokeStyle = this.arrowColor;
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(midX,midY);
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(midX,midY);
+    ctx.stroke();
     //drawing the label
 }
 
@@ -461,8 +510,8 @@ ArcEdge.prototype.nearPoint = function(x,y){
 
 ArcEdge.prototype.drawToPoint = function(ctx,x,y){
     ctx.beginPath();
-    //ctx.moveTo(this.startNode.x,this.startNode.y);
-    //ctx.lineTo(x,y);
+    ctx.moveTo(this.startNode.x,this.startNode.y);
+    ctx.lineTo(x,y);
     ctx.stroke();
 }
 
