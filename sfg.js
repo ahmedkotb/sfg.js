@@ -190,7 +190,6 @@ SFG.prototype.mousedown = function(e){
         edge.setEndNode(selected);
         sfg.addEdge(edge);
         sfg.selectItem(null);
-        sfg.redraw();
     }
 }
 
