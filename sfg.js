@@ -123,6 +123,10 @@ function SFG(canvas){
         this.canvas.sfg = this;
         this.canvas.ctx = this.ctx;
 
+        this.scale = 1.5;
+        this.transX = -30;
+        this.transY = -30;
+
         this.graph = {};
         this.nodeCounter = 0;
 
@@ -148,6 +152,7 @@ function SFG(canvas){
         this.addNode(100,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
+        this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
         this.redraw();
     }else{
         alert("canvas not supported!");
@@ -160,6 +165,11 @@ SFG.prototype.mousedown = function(e){
     var y = e.pageY - canvas.offsetTop;
     var state = this.sfg.state;
     var sfg = this.sfg;
+
+    //scale and translate factors
+    x -= sfg.transX; y -= sfg.transY;
+    x /= sfg.scale; y /= sfg.scale;
+
     if (state == STATES.ADD_NODE){
         sfg.newNode = null;
         sfg.state = STATES.NORMAL;
@@ -206,8 +216,6 @@ SFG.prototype.mousedown = function(e){
 
 SFG.prototype.mouseup = function(e){
     e = e || window.e;
-    var x = e.pageX - canvas.offsetLeft;
-    var y = e.pageY - canvas.offsetTop;
     var state = this.sfg.state;
     if (state == STATES.NODE_MOVE)
         this.sfg.state = STATES.NORMAL;
@@ -220,6 +228,11 @@ SFG.prototype.mousemove = function(e){
     var state = this.sfg.state;
     var sfg = this.sfg;
     var node = null;
+
+    //scale and translate factors
+    x -= sfg.transX; y -= sfg.transY;
+    x /= sfg.scale; y /= sfg.scale;
+
     if (sfg.selected instanceof Node || sfg.selected instanceof ControlNode)
         node = sfg.selected;
 
