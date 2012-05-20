@@ -364,8 +364,13 @@ SFG.prototype.deleteSelected = function(){
                 this.deleteEdge(e);
         }
         this.nodes.splice(index,1);
-    }else if (this.selected instanceof LineEdge){
+    }else if (this.selected instanceof LineEdge
+            || this.selected instanceof ArcEdge){
+        this.controlNode = null;
         this.deleteEdge(this.selected);
+    }else if (this.selected instanceof ControlNode){
+        this.deleteEdge(this.controlNode.arcEdge);
+        this.controlNode = null;
     }
 
     this.selectItem(null);
