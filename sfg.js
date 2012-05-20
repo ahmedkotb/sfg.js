@@ -429,14 +429,27 @@ SFG.prototype.redraw = function(){
     //clear the canvas
     this.ctx.setTransform(1,0,0,1,0,0);
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+
+    //draw grid
+    this.ctx.strokeStyle = "#C8C8C8";
+    this.ctx.beginPath();
+
+    for(var i=0;i<this.canvas.width;i+=10){
+        this.ctx.moveTo(i,0);
+        this.ctx.lineTo(i,this.canvas.height);
+    }
+
+    for(var i=0;i<this.canvas.height;i+=10){
+        this.ctx.moveTo(0,i);
+        this.ctx.lineTo(this.canvas.width,i);
+    }
+
+    this.ctx.stroke();
+
     this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
 
     var nodes = this.nodes;
     var edges = this.edges;
-
-    //draw control node if exists
-    if (this.controlNode)
-        this.controlNode.draw(this.ctx);
 
     //draw edges
     for (var i=0;i<edges.length;i++)
@@ -446,15 +459,19 @@ SFG.prototype.redraw = function(){
     for (var i=0;i<nodes.length;i++)
         nodes[i].draw(this.ctx);
 
+    //draw control node if exists
+    if (this.controlNode)
+        this.controlNode.draw(this.ctx);
+
 }
 
 SFG.prototype.zoomIn = function(){
-    this.scale += 0.5;
+    this.scale += 0.2;
     this.redraw();
 }
 
 SFG.prototype.zoomOut = function(){
-    this.scale -= 0.5;
+    this.scale -= 0.2;
     this.redraw();
 }
 
@@ -679,7 +696,7 @@ ArcEdge.prototype.draw = function(ctx){
         ctx.moveTo(this.startNode.x,this.startNode.y);
         ctx.lineTo(this.controlPoint.x,this.controlPoint.y);
         ctx.lineTo(this.endNode.x,this.endNode.y);
-        ctx.strokeStyle = "#C0C0C0";
+        ctx.strokeStyle = "#606060";
         ctx.stroke();
     }
 
