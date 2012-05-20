@@ -136,6 +136,8 @@ function SFG(canvas){
         this.newNode = null;
         this.newEdge = null;
 
+        this.controlNode = null;
+
         canvas.addEventListener('mousedown',this.mousedown,false);
         canvas.addEventListener('mouseup',this.mouseup,false);
         canvas.addEventListener('mousemove',this.mousemove,false);
@@ -165,11 +167,20 @@ SFG.prototype.mousedown = function(e){
     }else if (state == STATES.NORMAL){
 
         var selected = sfg.find(x,y);
-        sfg.selectItem(selected);
 
         if (selected instanceof Node){
             sfg.state = STATES.NODE_MOVE;
+            sfg.controlNode = null;
+        }else if (selected instanceof LineEdge){
+            sfg.controlNode = null;
+        }else if (selected instanceof ControlNode){
+            sfg.state = STATES.NODE_MOVE;
+        }else if (selected instanceof ArcEdge){
+            sfg.controlNode = new ControlNode(selected);
+        }else{
+            sfg.controlNode = null;
         }
+        sfg.selectItem(selected);
     }else if (state == STATES.EDGE_WAIT_NODE1){
         //sfg.newEdge must be initialized to empty edge
         //either by startAddingLineEdge or arc edge methods
@@ -209,15 +220,16 @@ SFG.prototype.mousemove = function(e){
     var state = this.sfg.state;
     var sfg = this.sfg;
     var node = null;
-    if (sfg.selected instanceof Node)
+    if (sfg.selected instanceof Node || sfg.selected instanceof ControlNode)
         node = sfg.selected;
+
     if (state == STATES.NODE_MOVE && node != null){
-        node.x = x;
-        node.y = y;
+        node.setX(x);
+        node.setY(y);
         sfg.redraw();
     }else if (state == STATES.ADD_NODE){
-        sfg.newNode.x = x;
-        sfg.newNode.y = y;
+        sfg.newNode.setX(x);
+        sfg.newNode.setY(y);
         sfg.redraw();
         sfg.newNode.draw(sfg.ctx);
     }else if (state == STATES.EDGE_WAIT_NODE2){
@@ -260,14 +272,17 @@ SFG.prototype.startAddingArcEdge = function(){
 SFG.prototype.selectItem = function(item){
     var oldItem = this.selected;
     var needRedraw = false;
+
     if (oldItem != null){
         oldItem.setUnselected();
         needRedraw = true;
     }
+
     if (item != null){
         item.setSelected();
         needRedraw = true;
     }
+
     this.selected = item;
 
     if (needRedraw)
@@ -301,9 +316,16 @@ SFG.prototype.findEdge = function(x,y){
 }
 
 SFG.prototype.find = function(x,y){
+    // first check for control point selection
+    if (this.controlNode != null && this.controlNode.pointInside(x,y))
+        return this.controlNode;
+
+    // second check for any node selection
     var node = this.findNode(x,y);
     if (node != null)
         return node;
+
+    // third check for any edge selection
     return this.findEdge(x,y);
 }
 
@@ -311,8 +333,8 @@ SFG.prototype.addNode = function(x,y){
     var node = new Node(this.nodeCounter);
     this.nodeCounter++;
     this.graph[node.id] = {};
-    node.x = x;
-    node.y = y;
+    node.setX(x);
+    node.setY(y);
     this.nodes.push(node);
     this.redraw();
 }
@@ -371,11 +393,18 @@ SFG.prototype.redraw = function(){
     var nodes = this.nodes;
     var edges = this.edges;
 
+    //draw control node if exists
+    if (this.controlNode)
+        this.controlNode.draw(this.ctx);
+
+    //draw edges
     for (var i=0;i<edges.length;i++)
         edges[i].draw(this.ctx);
 
+    //draw nodes
     for (var i=0;i<nodes.length;i++)
         nodes[i].draw(this.ctx);
+
 }
 
 //--------------------------------------------
@@ -386,6 +415,14 @@ function Node(id){
     this.y = 0;
     this.radius = DEFAULT_RADIUS;
     this.color = DEFAULT_COLOR;
+}
+
+Node.prototype.setX = function(x){
+    this.x = x;
+}
+
+Node.prototype.setY = function(y){
+    this.y = y;
 }
 
 Node.prototype.draw = function(ctx){
@@ -411,6 +448,43 @@ Node.prototype.setUnselected = function(){
 Node.prototype.pointInside = function(x,y){
     return Math.abs(this.x-x) < this.radius && Math.abs(this.y-y) < this.radius;
 }
+
+//--------------------------------------------
+function ControlNode(arcEdge){
+    this.arcEdge = arcEdge;
+    this.x = arcEdge.controlPoint.x;
+    this.y = arcEdge.controlPoint.y;
+    this.name = "";
+    this.radius = DEFAULT_RADIUS/2;
+    this.color = "#FF0000";
+}
+
+ControlNode.prototype.setX = function(x){
+    this.arcEdge.controlPoint.x = x;
+    this.x = x;
+}
+
+ControlNode.prototype.setY = function(y){
+    this.arcEdge.controlPoint.y = y;
+    this.y = y;
+}
+
+//same draw method as Node object
+ControlNode.prototype.draw = Node.prototype.draw;
+
+ControlNode.prototype.setSelected = function(){
+    this.color = DEFAULT_SELECTED_COLOR;
+    this.arcEdge.setSelected();
+}
+
+ControlNode.prototype.setUnselected = function(){
+    this.color = "#FF0000";
+    this.arcEdge.setUnselected();
+}
+
+//same pointInside method as Node Object
+ControlNode.prototype.pointInside = Node.prototype.pointInside;
+
 //---------------------------
 function LineEdge(startNode,endNode){
     this.startNode = startNode;
