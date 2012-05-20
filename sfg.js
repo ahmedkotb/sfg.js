@@ -26,6 +26,94 @@ function setPixelColor(data,x,y,color){
     data[index+2] = color.b;
     data[index+3] = 0xff;
 }
+
+
+function solveCubic(c) {
+
+    //Code ported from c version available here
+    //http://tog.acm.org/resources/GraphicsGems/gems/Roots3And4.c
+    M_PI = 3.14159265358979323846;
+    function isZero(x){
+        var EQN_EPS = 1e-9;
+        return Math.abs(x) < EQN_EPS;
+    }
+
+    function cbrt(x){
+        return (x > 0.0 ? Math.pow(x, 1/3) : (x < 0.0 ? - Math.pow(-x, 1/3) : 0.0));
+    }
+
+    var s = null;
+    var i, num;
+    var sub;
+    var A, B, C;
+    var sq_A, p, q;
+    var cb_p, D;
+
+    /* normal form: x^3 + Ax^2 + Bx + C = 0 */
+
+    A = c[ 2 ] / c[ 3 ];
+    B = c[ 1 ] / c[ 3 ];
+    C = c[ 0 ] / c[ 3 ];
+
+    /*  substitute x = y - A/3 to eliminate quadric term:
+	x^3 +px + q = 0 */
+
+    sq_A = A * A;
+    p = 1.0/3 * (- 1.0/3 * sq_A + B);
+    q = 1.0/2 * (2.0/27 * A * sq_A - 1.0/3 * A * B + C);
+
+    /* use Cardano's formula */
+
+    cb_p = p * p * p;
+    D = q * q + cb_p;
+
+    if (isZero(D)) {
+        if (isZero(q)) {
+            /* one triple solution */
+            s = [0.0];
+            s[ 0 ] = 0;
+            num = 1;
+        } else {
+            /* one single and one double solution */
+            s = [0.0,0.0];
+            var u = cbrt(-q);
+            s[ 0 ] = 2 * u;
+            s[ 1 ] = - u;
+            num = 2;
+        }
+    }
+    else if (D < 0){
+        /* Casus irreducibilis: three real solutions */
+        var phi = 1.0/3 * Math.acos(-q / Math.sqrt(-cb_p));
+        var t = 2 * Math.sqrt(-p);
+
+        s = [0.0,0.0,0.0];
+        s[ 0 ] =   t * Math.cos(phi);
+        s[ 1 ] = - t * Math.cos(phi + M_PI / 3);
+        s[ 2 ] = - t * Math.cos(phi - M_PI / 3);
+        num = 3;
+    }
+    else{
+        /* one real solution */
+        var sqrt_D = Math.sqrt(D);
+        var u = cbrt(sqrt_D - q);
+        var v = - cbrt(sqrt_D + q);
+
+        s = [0.0];
+        s[ 0 ] = u + v;
+        num = 1;
+    }
+
+    /* resubstitute */
+
+    sub = 1.0/3 * A;
+
+    for (i = 0; i < num; ++i)
+        s[ i ] -= sub;
+
+    return s;
+}
+
 //--------------------------------------------
 function SFG(canvas){
     if (canvas.getContext){
@@ -55,6 +143,7 @@ function SFG(canvas){
         //Demo example for testing
         this.addNode(100,150);
         this.addNode(250,150);
+        this.addNode(100,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
         this.redraw();
@@ -387,6 +476,8 @@ LineEdge.prototype.draw = function(ctx){
 }
 
 LineEdge.prototype.nearPoint = function(x,y){
+    var threshold = 5;
+
     var x1 = this.startNode.x;
     var y1 = this.startNode.y;
     var x2 = this.endNode.x;
@@ -396,7 +487,7 @@ LineEdge.prototype.nearPoint = function(x,y){
     var xp = x1 + u*(x2-x1);
     var yp = y1 + u*(y2-y1);
     var dist = Math.sqrt((xp-x)*(xp-x) + (yp-y)*(yp-y));
-    return dist < 10;
+    return dist < threshold;
 }
 
 LineEdge.prototype.drawToPoint = function(ctx,x,y){
@@ -512,7 +603,75 @@ ArcEdge.prototype.draw = function(ctx){
 }
 
 ArcEdge.prototype.nearPoint = function(x,y){
-    return false;
+
+    var threshold = 5;
+    if ((this.startNode.x == this.endNode.x
+            && this.startNode.x == this.controlPoint.x) ||
+            this.startNode.y ==  this.endNode.y
+            && this.startNode.y == this.controlPoint.y){
+        //vertical or horizontal case
+        var x1 = this.startNode.x;
+        var y1 = this.startNode.y;
+        var x2 = this.endNode.x;
+        var y2 = this.endNode.y;
+        var mag = ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+        var u = ((x-x1)*(x2-x1) + (y-y1)*(y2-y1))/mag;
+        var xp = x1 + u*(x2-x1);
+        var yp = y1 + u*(y2-y1);
+        var dist = Math.sqrt((xp-x)*(xp-x) + (yp-y)*(yp-y));
+        return dist < threshold;
+    }
+
+    //solving cubic equation to get closest point
+    var A = {x:this.controlPoint.x - this.startNode.x,
+             y:this.controlPoint.y - this.startNode.y}
+    var B = {x:this.endNode.x - this.controlPoint.x - A.x,
+             y:this.endNode.y - this.controlPoint.y - A.y}
+
+    var M = {x:x,
+             y:y}
+
+    var Mp = {x:this.startNode.x - M.x,
+              y:this.startNode.y - M.y}
+
+
+    var a = B.x*B.x + B.y*B.y;
+    var b = 3 *(A.x*B.x + A.y*B.y);
+    var c = 2 *(A.x*A.x + A.y*A.y) + (Mp.x*B.x + Mp.y*B.y);
+    var d = Mp.x*A.x + Mp.y*A.y;
+    result = solveCubic([d,c,b,a]);
+
+    /*
+    debugClear();
+    debug(a + " " + b + " " + c + " " + d);
+    debug(result);
+    */
+
+    var minDist = Infinity;
+    var px = 0,py = 0;
+    for (var i=0;i<result.length;i++){
+        var t = result[i];
+        if (t > 0 && t < 1){
+            var p0x = this.startNode.x, p0y = this.startNode.y;
+            var p1x = this.controlPoint.x, p1y = this.controlPoint.y;
+            var p2x = this.endNode.x, p2y = this.endNode.y;
+            px = (1-t)*(1-t)*p0x + 2*(1-t)*t*p1x + t*t*p2x;
+            py = (1-t)*(1-t)*p0y + 2*(1-t)*t*p1y + t*t*p2y;
+            var dist = Math.sqrt((x-px)*(x-px) + (y-py)*(y-py));
+            minDist = dist < minDist ? dist : minDist;
+        }else if (t > 1){
+            px = this.endNode.x;
+            py = this.endNode.y;
+            var dist = Math.sqrt((x-px)*(x-px) + (y-py)*(y-py));
+            minDist = dist < minDist ? dist : minDist;
+        }else{
+            px = this.startNode.x;
+            py = this.startNode.y;
+            var dist = Math.sqrt((x-px)*(x-px) + (y-py)*(y-py));
+            minDist = dist < minDist ? dist : minDist;
+        }
+    }
+    return minDist < threshold;
 }
 
 ArcEdge.prototype.drawToPoint = function(ctx,x,y){
