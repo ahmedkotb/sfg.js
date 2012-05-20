@@ -460,7 +460,7 @@ function ControlNode(arcEdge){
     this.x = arcEdge.controlPoint.x;
     this.y = arcEdge.controlPoint.y;
     this.name = "";
-    this.radius = DEFAULT_RADIUS/2;
+    this.radius = DEFAULT_RADIUS/1.5;
     this.color = "#FF0000";
 }
 
@@ -554,7 +554,7 @@ LineEdge.prototype.draw = function(ctx){
 }
 
 LineEdge.prototype.nearPoint = function(x,y){
-    var threshold = 5;
+    var threshold = 8;
 
     var x1 = this.startNode.x;
     var y1 = this.startNode.y;
@@ -685,7 +685,7 @@ ArcEdge.prototype.draw = function(ctx){
 
 ArcEdge.prototype.nearPoint = function(x,y){
 
-    var threshold = 5;
+    var threshold = 8;
     if ((this.startNode.x == this.endNode.x
             && this.startNode.x == this.controlPoint.x) ||
             this.startNode.y ==  this.endNode.y
@@ -728,6 +728,9 @@ ArcEdge.prototype.nearPoint = function(x,y){
     debug(result);
     */
 
+    //to always check for endpoints (for corner cases)
+    result.push(2);
+    result.push(-2);
     var minDist = Infinity;
     var px = 0,py = 0;
     for (var i=0;i<result.length;i++){
