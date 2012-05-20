@@ -4,7 +4,8 @@ DEFAULT_EDGE_COLOR = "#000000"
 DEFAULT_SELECTED_COLOR = "#0000FF"
 
 STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
-          EDGE_WAIT_NODE1: 3,EDGE_WAIT_NODE2: 4
+          EDGE_WAIT_NODE1: 3,EDGE_WAIT_NODE2: 4,
+          PAN: 5
           };
 
 //helper functions
@@ -152,7 +153,6 @@ function SFG(canvas){
         this.addNode(100,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
-        this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
         this.redraw();
     }else{
         alert("canvas not supported!");
@@ -161,6 +161,9 @@ function SFG(canvas){
 
 SFG.prototype.mousedown = function(e){
     e = e || window.e;
+    e.preventDefault();
+    e.stopPropagation();
+
     var x = e.pageX - canvas.offsetLeft;
     var y = e.pageY - canvas.offsetTop;
     var state = this.sfg.state;
@@ -190,6 +193,12 @@ SFG.prototype.mousedown = function(e){
         }else{
             sfg.controlNode = null;
         }
+        if (selected == null){
+            this.startX = x;
+            this.startY = y;
+            sfg.state = STATES.PAN;
+            this.style.cursor = "move";
+        }
         sfg.selectItem(selected);
     }else if (state == STATES.EDGE_WAIT_NODE1){
         //sfg.newEdge must be initialized to empty edge
@@ -216,9 +225,13 @@ SFG.prototype.mousedown = function(e){
 
 SFG.prototype.mouseup = function(e){
     e = e || window.e;
+    e.preventDefault();
+    e.stopPropagation();
     var state = this.sfg.state;
-    if (state == STATES.NODE_MOVE)
+    if (state == STATES.NODE_MOVE || state == STATES.PAN){
         this.sfg.state = STATES.NORMAL;
+        this.style.cursor = "auto";
+    }
 }
 
 SFG.prototype.mousemove = function(e){
@@ -248,6 +261,12 @@ SFG.prototype.mousemove = function(e){
     }else if (state == STATES.EDGE_WAIT_NODE2){
         sfg.redraw();
         sfg.newEdge.drawToPoint(sfg.ctx,x,y);
+    }else if (state == STATES.PAN){
+        var dx = x - this.startX;
+        var dy = y - this.startY;
+        sfg.transX += dx;
+        sfg.transY += dy;
+        sfg.redraw();
     }
 }
 
@@ -407,6 +426,7 @@ SFG.prototype.deleteEdge = function(edge){
 }
 
 SFG.prototype.redraw = function(){
+    this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
     var nodes = this.nodes;
     var edges = this.edges;
