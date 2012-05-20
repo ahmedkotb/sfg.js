@@ -694,6 +694,8 @@ ArcEdge.prototype.draw = function(ctx){
     ctx.lineTo(midX,midY);
     ctx.stroke();
     //drawing the label
+    var width = ctx.measureText(this.label).width;
+    ctx.fillText(this.label,x-width/2.0,y+10);
 }
 
 ArcEdge.prototype.nearPoint = function(x,y){
