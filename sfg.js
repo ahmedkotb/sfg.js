@@ -510,6 +510,7 @@ function ArcEdge(startNode,endNode){
     this.startNode = startNode;
     this.endNode = endNode;
     this.controlPoint = {x:0,y:0};
+    this.drawControlLines = false;
 
     if (this.startNode != null && this.endNode != null){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
@@ -549,12 +550,14 @@ ArcEdge.prototype.draw = function(ctx){
     ctx.stroke();
 
     //draw control lines
-    ctx.beginPath();
-    ctx.moveTo(this.startNode.x,this.startNode.y);
-    ctx.lineTo(this.controlPoint.x,this.controlPoint.y);
-    ctx.lineTo(this.endNode.x,this.endNode.y);
-    ctx.strokeStyle = "#C0C0C0";
-    ctx.stroke();
+    if (this.drawControlLines){
+        ctx.beginPath();
+        ctx.moveTo(this.startNode.x,this.startNode.y);
+        ctx.lineTo(this.controlPoint.x,this.controlPoint.y);
+        ctx.lineTo(this.endNode.x,this.endNode.y);
+        ctx.strokeStyle = "#C0C0C0";
+        ctx.stroke();
+    }
 
     //drawing the arrow
     //first get the midpoint on the curve (t=0.5)
@@ -683,9 +686,11 @@ ArcEdge.prototype.drawToPoint = function(ctx,x,y){
 
 ArcEdge.prototype.setSelected = function(){
     this.color = "#0000FF";
+    this.drawControlLines = true;
 }
 
 ArcEdge.prototype.setUnselected = function(){
     this.color = DEFAULT_EDGE_COLOR;
+    this.drawControlLines = false;
 }
 
