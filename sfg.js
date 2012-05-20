@@ -426,8 +426,11 @@ SFG.prototype.deleteEdge = function(edge){
 }
 
 SFG.prototype.redraw = function(){
-    this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
+    //clear the canvas
+    this.ctx.setTransform(1,0,0,1,0,0);
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
+
     var nodes = this.nodes;
     var edges = this.edges;
 
@@ -443,6 +446,16 @@ SFG.prototype.redraw = function(){
     for (var i=0;i<nodes.length;i++)
         nodes[i].draw(this.ctx);
 
+}
+
+SFG.prototype.zoomIn = function(){
+    this.scale += 0.5;
+    this.redraw();
+}
+
+SFG.prototype.zoomOut = function(){
+    this.scale -= 0.5;
+    this.redraw();
 }
 
 //--------------------------------------------
