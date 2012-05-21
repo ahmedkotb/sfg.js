@@ -124,6 +124,7 @@ function SFG(canvas){
         this.canvas.sfg = this;
         this.canvas.ctx = this.ctx;
 
+        this.grid = true;
         this.scale = 1.5;
         this.transX = -30;
         this.transY = -30;
@@ -431,20 +432,22 @@ SFG.prototype.redraw = function(){
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
 
     //draw grid
-    this.ctx.strokeStyle = "#C8C8C8";
-    this.ctx.beginPath();
+    if (this.grid){
+        this.ctx.strokeStyle = "#C8C8C8";
+        this.ctx.beginPath();
 
-    for(var i=0;i<this.canvas.width;i+=10){
-        this.ctx.moveTo(i,0);
-        this.ctx.lineTo(i,this.canvas.height);
+        for(var i=0;i<this.canvas.width;i+=10){
+            this.ctx.moveTo(i,0);
+            this.ctx.lineTo(i,this.canvas.height);
+        }
+
+        for(var i=0;i<this.canvas.height;i+=10){
+            this.ctx.moveTo(0,i);
+            this.ctx.lineTo(this.canvas.width,i);
+        }
+
+        this.ctx.stroke();
     }
-
-    for(var i=0;i<this.canvas.height;i+=10){
-        this.ctx.moveTo(0,i);
-        this.ctx.lineTo(this.canvas.width,i);
-    }
-
-    this.ctx.stroke();
 
     this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
 
