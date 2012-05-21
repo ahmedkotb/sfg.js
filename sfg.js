@@ -224,7 +224,9 @@ SFG.prototype.mousedown = function(e){
         var edge = sfg.newEdge;
         edge.setEndNode(selected);
         sfg.addEdge(edge);
-        sfg.selectItem(null);
+        if (edge instanceof ArcEdge && !selected.selfEdge)
+            sfg.controlNode = new ControlNode(edge);
+        sfg.selectItem(edge);
     }
 }
 
