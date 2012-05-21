@@ -865,6 +865,20 @@ ArcEdge.prototype.nearPoint = function(x,y){
     var B = {x:this.endNode.x - this.controlPoint.x - A.x,
              y:this.endNode.y - this.controlPoint.y - A.y}
 
+    //numerical hack to solve a strange case
+    //where B values are very small (1e-14)
+    if (Math.abs(B.x) < 1e-10){
+        if (B.x > 0)
+            B.x = 1e-5;
+        else
+            B.x = -1e-5;
+    }
+    if (Math.abs(B.y) < 1e-10){
+        if (B.y > 0)
+            B.y = 1e-5;
+        else
+            B.y = -1e-5;
+    }
     var M = {x:x,
              y:y}
 
