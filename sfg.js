@@ -154,8 +154,8 @@ function SFG(canvas){
         this.addNode(100,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
-        e = new LineEdge(this.nodes[1],this.nodes[1]);
-        this.addEdge(e);
+        //e = new LineEdge(this.nodes[1],this.nodes[1]);
+        //this.addEdge(e);
         e = new ArcEdge(this.nodes[2],this.nodes[2]);
         this.addEdge(e);
         this.redraw();
@@ -193,7 +193,7 @@ SFG.prototype.mousedown = function(e){
             sfg.controlNode = null;
         }else if (selected instanceof ControlNode){
             sfg.state = STATES.NODE_MOVE;
-        }else if (selected instanceof ArcEdge && !selected.selfEdge){
+        }else if (selected instanceof ArcEdge){
             sfg.controlNode = new ControlNode(selected);
         }else{
             sfg.controlNode = null;
@@ -224,7 +224,7 @@ SFG.prototype.mousedown = function(e){
         var edge = sfg.newEdge;
         edge.setEndNode(selected);
         sfg.addEdge(edge);
-        if (edge instanceof ArcEdge && !edge.selfEdge)
+        if (edge instanceof ArcEdge)
             sfg.controlNode = new ControlNode(edge);
         sfg.selectItem(edge);
     }
@@ -589,15 +589,21 @@ LineEdge.prototype.setEndNode = function(endNode){
 
 LineEdge.prototype.drawCircle = function(ctx){
     //draw the self edge
+    this.selfEdgeRadius = Math.sqrt((this.startNode.x-this.controlPoint.x)
+            *(this.startNode.x-this.controlPoint.x)+
+            (this.startNode.y-this.controlPoint.y)*
+            (this.startNode.y-this.controlPoint.y));
     var r = this.startNode.radius;
     ctx.beginPath();
-    ctx.arc(this.startNode.x+r,this.startNode.y,
+    //ctx.arc(this.startNode.x+r,this.startNode.y,
+    //        this.selfEdgeRadius,0,2*Math.PI,false);
+    ctx.arc(this.controlPoint.x,this.controlPoint.y,
             this.selfEdgeRadius,0,2*Math.PI,false);
     ctx.strokeStyle = this.color;
     ctx.stroke();
 
-    var midX = this.startNode.x + r + this.selfEdgeRadius;
-    var midY = this.startNode.y;
+    var midX = this.controlPoint.x + this.selfEdgeRadius;
+    var midY = this.controlPoint.y;
 
     //drawing the arrow (up directed arrow)
     var len = 8;
@@ -729,6 +735,10 @@ function ArcEdge(startNode,endNode){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
         this.selfEdge = startNode.id == endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+        }
     }
 
     this.color = "#000000";
@@ -838,8 +848,8 @@ ArcEdge.prototype.nearPoint = function(x,y){
 
     if (this.selfEdge){
         var r = this.startNode.radius;
-        var cx = this.startNode.x + r;
-        var cy = this.startNode.y;
+        var cx = this.controlPoint.x;
+        var cy = this.controlPoint.y;
         dist = Math.sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) - this.selfEdgeRadius;
         dist = Math.abs(dist);
         return dist < threshold;
