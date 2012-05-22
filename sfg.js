@@ -224,7 +224,7 @@ SFG.prototype.mousedown = function(e){
         var edge = sfg.newEdge;
         edge.setEndNode(selected);
         sfg.addEdge(edge);
-        if (edge instanceof ArcEdge && !selected.selfEdge)
+        if (edge instanceof ArcEdge && !edge.selfEdge)
             sfg.controlNode = new ControlNode(edge);
         sfg.selectItem(edge);
     }
@@ -724,6 +724,7 @@ function ArcEdge(startNode,endNode){
 
     this.selfEdge = false;
     this.selfEdgeRadius = DEFAULT_RADIUS + 2;
+
     if (this.startNode != null && this.endNode != null){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
@@ -737,19 +738,21 @@ function ArcEdge(startNode,endNode){
 
 ArcEdge.prototype.setStartNode = function(startNode){
     this.startNode = startNode;
-    //re-estimate control point location
+    //re-estimate control point location and check for selfEdges
     if (this.startNode != null && this.endNode != null){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
+        this.selfEdge = this.startNode.id == this.endNode.id;
     }
 }
 
 ArcEdge.prototype.setEndNode = function(endNode){
     this.endNode = endNode;
-    //re-estimate control point location
+    //re-estimate control point location and check for self Edges
     if (this.startNode != null && this.endNode != null){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
+        this.selfEdge = this.startNode.id == this.endNode.id;
     }
 }
 
