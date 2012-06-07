@@ -154,8 +154,8 @@ function SFG(canvas){
         this.addNode(100,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
-        //e = new LineEdge(this.nodes[1],this.nodes[1]);
-        //this.addEdge(e);
+        e = new LineEdge(this.nodes[1],this.nodes[1]);
+        this.addEdge(e);
         e = new ArcEdge(this.nodes[2],this.nodes[2]);
         this.addEdge(e);
         this.redraw();
@@ -191,6 +191,8 @@ SFG.prototype.mousedown = function(e){
             sfg.controlNode = null;
         }else if (selected instanceof LineEdge){
             sfg.controlNode = null;
+            if (selected.selfEdge)
+                sfg.controlNode = new ControlNode(selected);
         }else if (selected instanceof ControlNode){
             sfg.state = STATES.NODE_MOVE;
         }else if (selected instanceof ArcEdge){
@@ -569,25 +571,56 @@ function LineEdge(startNode,endNode){
     this.color = "#000000";
     this.arrowColor = "#800000";
     this.label = "a";
+    this.controlPoint = {x:0,y:0};
     this.selfEdge = false;
     this.selfEdgeRadius = DEFAULT_RADIUS + 2;
-    if (startNode != null && endNode != null)
+    this.selfNodeOldLocation = {x:0,y:0};
+    if (startNode != null && endNode != null){
         this.selfEdge = startNode.id == endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
+        }
+    }
 }
 
 LineEdge.prototype.setStartNode = function(startNode){
     this.startNode = startNode;
-    if (this.startNode != null && this.endNode != null)
+    if (this.startNode != null && this.endNode != null){
         this.selfEdge = this.startNode.id == this.endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
+        }
+    }
 }
 
 LineEdge.prototype.setEndNode = function(endNode){
     this.endNode = endNode;
-    if (this.startNode != null && this.endNode != null)
+    if (this.startNode != null && this.endNode != null){
         this.selfEdge = this.startNode.id == this.endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
+        }
+    }
 }
 
 LineEdge.prototype.drawCircle = function(ctx){
+    //check node location change
+    if (this.startNode.x != this.selfNodeOldLocation.x ||
+            this.startNode.y != this.selfNodeOldLocation.y){
+        this.controlPoint.x += this.startNode.x - this.selfNodeOldLocation.x;
+        this.controlPoint.y += this.startNode.y - this.selfNodeOldLocation.y;
+        this.selfNodeOldLocation.x = this.startNode.x;
+        this.selfNodeOldLocation.y = this.startNode.y;
+    }
     //draw the self edge
     this.selfEdgeRadius = Math.sqrt((this.startNode.x-this.controlPoint.x)
             *(this.startNode.x-this.controlPoint.x)+
@@ -685,11 +718,11 @@ LineEdge.prototype.nearPoint = function(x,y){
 
     var dist = 0;
     if (this.selfEdge){
-        var r = this.startNode.radius;
-        var cx = this.startNode.x + r;
-        var cy = this.startNode.y;
+        var cx = this.controlPoint.x;
+        var cy = this.controlPoint.y;
         dist = Math.sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) - this.selfEdgeRadius;
         dist = Math.abs(dist);
+        return dist < threshold;
     }else{
         var x1 = this.startNode.x;
         var y1 = this.startNode.y;
@@ -730,6 +763,7 @@ function ArcEdge(startNode,endNode){
 
     this.selfEdge = false;
     this.selfEdgeRadius = DEFAULT_RADIUS + 2;
+    this.selfNodeOldLocation = {x:0,y:0};
 
     if (this.startNode != null && this.endNode != null){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
@@ -738,6 +772,8 @@ function ArcEdge(startNode,endNode){
         if (this.selfEdge){
             this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
             this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
         }
     }
 
@@ -847,7 +883,6 @@ ArcEdge.prototype.nearPoint = function(x,y){
     var threshold = 8;
 
     if (this.selfEdge){
-        var r = this.startNode.radius;
         var cx = this.controlPoint.x;
         var cy = this.controlPoint.y;
         dist = Math.sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy)) - this.selfEdgeRadius;
