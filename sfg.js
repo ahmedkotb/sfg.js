@@ -635,16 +635,44 @@ LineEdge.prototype.drawCircle = function(ctx){
     ctx.strokeStyle = this.color;
     ctx.stroke();
 
-    var midX = this.controlPoint.x + this.selfEdgeRadius;
-    var midY = this.controlPoint.y;
+    var midX = 0;
+    var midY = 0;
+    var perpendicularAngle = 0;
+    if (this.controlPoint.x == this.startNode.x){
+        midX = this.startNode.x;
+        if (this.startNode.y > this.controlPoint.y){
+            midY = this.controlPoint.y - this.selfEdgeRadius;
+            perpendicularAngle = 0;
+        }else{
+            midY = this.controlPoint.y + this.selfEdgeRadius;
+            perpendicularAngle = Math.PI;
+        }
+    }else{
+        var ang = Math.atan2(this.controlPoint.y-this.startNode.y
+                ,this.controlPoint.x-this.startNode.x);
+        midX = this.controlPoint.x + Math.cos(ang) * this.selfEdgeRadius;
+        midY = this.controlPoint.y + Math.sin(ang) * this.selfEdgeRadius;
+        if (this.controlPoint.y == this.startNode.y){
+            if (this.controlPoint.x > this.startNode.x)
+                perpendicularAngle = Math.PI/2;
+            else
+                perpendicularAngle = 3*Math.PI/2;
+        }
+        else //perpendicular slope = -1/slope
+            perpendicularAngle = Math.atan2(this.controlPoint.x-this.startNode.x
+                    ,-(this.controlPoint.y-this.startNode.y));
+    }
 
     //drawing the arrow (up directed arrow)
     var len = 8;
     var arrowAng = 60;
-    var x1 = midX - len * Math.sin(toRadians(arrowAng));
-    var x2 = midX + len * Math.sin(toRadians(arrowAng));
-    var y1 = midY + len * Math.cos(toRadians(arrowAng));
-    var y2 = midY + len * Math.cos(toRadians(arrowAng));
+    var ang1 = perpendicularAngle - toRadians(arrowAng);
+    var ang2 = perpendicularAngle + toRadians(arrowAng);
+
+    var x1 = midX + len * Math.cos(ang1);
+    var x2 = midX + len * Math.cos(ang2);
+    var y1 = midY + len * Math.sin(ang1);
+    var y2 = midY + len * Math.sin(ang2);
 
     ctx.save();
     ctx.beginPath();
