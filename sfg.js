@@ -542,11 +542,31 @@ SFG.prototype.getLoops = function(){
         var paths = [];
         this.dfs(nodeID,nodeID,paths,visited,[]);
         visited[nodeID] = true;
-        for (j in paths)
+        for (j in paths){
+            var l = new Loop(paths[j],this.graph);
             debug(paths[j]);
+            debug("gain = " + l.gain());
+        }
     }
 }
 
+//--------------------------------------------
+function Loop(nodesList,graph){
+    this.nodes = nodesList;
+    this.graph = graph;
+}
+
+Loop.prototype.gain = function(){
+    var gain = "";
+    for (var i=1;i<this.nodes.length;i++){
+        var prev = this.nodes[i-1];
+        var n = this.nodes[i];
+        gain += this.graph[prev][n].label;
+        if (i != this.nodes.length -1)
+            gain += " * ";
+    }
+    return gain;
+}
 //--------------------------------------------
 function Node(id){
     this.id = id;
