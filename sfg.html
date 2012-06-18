@@ -19,6 +19,10 @@
             function deleteItem(){
                 sfg.deleteSelected();
             }
+            function solve(){
+                sfg.getPaths(0,3);
+                sfg.getLoops();
+            }
         </script>
   </head>
   <body onload = "init()">
@@ -30,6 +34,7 @@
           <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
           <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
           <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
+          <button id= "solve" onclick="solve()" > Solve </button>
           </br>
           <canvas id="canvas" width="600" height="400" style="border:solid;">
             sfg canvas

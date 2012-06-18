@@ -1,9 +1,9 @@
-DEFAULT_RADIUS = 12
-DEFAULT_COLOR = "#228b22"
-DEFAULT_EDGE_COLOR = "#000000"
-DEFAULT_SELECTED_COLOR = "#0000FF"
+var DEFAULT_RADIUS = 12
+var DEFAULT_COLOR = "#228b22"
+var DEFAULT_EDGE_COLOR = "#000000"
+var DEFAULT_SELECTED_COLOR = "#0000FF"
 
-STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
+var STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
           EDGE_WAIT_NODE1: 3,EDGE_WAIT_NODE2: 4,
           PAN: 5
           };
@@ -152,11 +152,16 @@ function SFG(canvas){
         this.addNode(100,150);
         this.addNode(250,150);
         this.addNode(100,250);
+        this.addNode(150,50);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
         e = new LineEdge(this.nodes[1],this.nodes[1]);
         this.addEdge(e);
         e = new ArcEdge(this.nodes[2],this.nodes[2]);
+        this.addEdge(e);
+        e = new ArcEdge(this.nodes[1],this.nodes[3]);
+        this.addEdge(e);
+        e = new ArcEdge(this.nodes[0],this.nodes[3]);
         this.addEdge(e);
         this.redraw();
     }else{
@@ -484,6 +489,62 @@ SFG.prototype.zoomIn = function(){
 SFG.prototype.zoomOut = function(){
     this.scale -= 0.2;
     this.redraw();
+}
+
+
+//--------------------------------------------
+// SFG solve method
+
+SFG.prototype.getPaths = function(startNodeID,endNodeID){
+    debugClear();
+    debug("Paths");
+    var paths = [];
+    this.dfs(startNodeID,endNodeID,paths,{},[]);
+    for (i in paths)
+        debug(paths[i]);
+}
+
+//helper method
+SFG.prototype.dfs= function(nodeID,destID,paths,visited,stack){
+    visited[nodeID] = true;
+    stack.push(nodeID);
+    /*
+    if (nodeID == destID){
+        //reached the destination
+        path = stack.slice(0,stack.length);
+        paths.push(path);
+    }else{
+        //visit neighbours
+        for (n in this.graph[nodeID]){
+            if (!visited[n])
+                this.dfs(n,destID,paths,visited,stack);
+        }
+    }
+    */
+    for (n in this.graph[nodeID]){
+        if (n == destID){
+            path = stack.slice(0,stack.length);
+            path.push(destID);
+            paths.push(path);
+        }
+        else if (!visited[n])
+            this.dfs(n,destID,paths,visited,stack);
+    }
+    visited[nodeID] = false;
+    stack.pop();
+}
+
+SFG.prototype.getLoops = function(){
+    debug("Loops");
+    var visited = {};
+    for (i in this.nodes){
+        nodeID = this.nodes[i].id;
+        var paths = [];
+        this.dfs(nodeID,nodeID,paths,visited,[]);
+        visited[nodeID] = true;
+        for (j in paths)
+            debug(paths[j]);
+    }
 }
 
 //--------------------------------------------
