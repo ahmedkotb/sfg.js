@@ -997,6 +997,12 @@ ArcEdge.prototype.setStartNode = function(startNode){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
         this.selfEdge = this.startNode.id == this.endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
+        }
     }
 }
 
@@ -1007,6 +1013,12 @@ ArcEdge.prototype.setEndNode = function(endNode){
         this.controlPoint.x = (this.startNode.x + this.endNode.x)/2;
         this.controlPoint.y = (this.startNode.y + this.endNode.y)/2;
         this.selfEdge = this.startNode.id == this.endNode.id;
+        if (this.selfEdge){
+            this.controlPoint.x = this.startNode.x + DEFAULT_RADIUS;
+            this.controlPoint.y = this.startNode.y;
+            this.selfNodeOldLocation.x = this.startNode.x;
+            this.selfNodeOldLocation.y = this.startNode.y;
+        }
     }
 }
 
