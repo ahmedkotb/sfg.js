@@ -153,6 +153,7 @@ function SFG(canvas){
         this.addNode(250,150);
         this.addNode(100,250);
         this.addNode(150,50);
+        this.addNode(250,250);
         e = new ArcEdge(this.nodes[0],this.nodes[1]);
         this.addEdge(e);
         e = new LineEdge(this.nodes[1],this.nodes[1]);
@@ -162,6 +163,8 @@ function SFG(canvas){
         e = new ArcEdge(this.nodes[1],this.nodes[3]);
         this.addEdge(e);
         e = new ArcEdge(this.nodes[0],this.nodes[3]);
+        this.addEdge(e);
+        e = new ArcEdge(this.nodes[4],this.nodes[4]);
         this.addEdge(e);
         this.redraw();
     }else{
@@ -495,6 +498,43 @@ SFG.prototype.zoomOut = function(){
 //--------------------------------------------
 // SFG solve method
 
+SFG.prototype.solve = function(startNodeID,endNodeID){
+
+    var paths = this.getPaths(startNodeID,endNodeID);
+    var loops = this.getLoops();
+    //calculate delta
+    var deltaSym = "1";
+    for(var i=0;i<loops.length;i++){
+        var item = loops[i];
+        if (i%2 == 0)
+            deltaSym += " - ";
+        else
+            deltaSym += " + ";
+
+        deltaSym += "( ";
+        if (i==0){
+            for (var j=0;j<item.length-1;j++)
+                deltaSym += item[j].gain() + " + ";
+            deltaSym += item[item.length-1].gain();
+        }else{
+            for (var j=0;j<item.length;j++){
+                var loopArray = item[j];
+                var loopGain = "";
+                for (var k=0;k<loopArray.length-1;k++)
+                    loopGain += loopArray[k].gain()  + " * ";
+                loopGain += loopArray[loopArray.length-1].gain();
+
+                deltaSym += loopGain;
+                if (j != item.length-1)
+                    deltaSym += " + ";
+            }
+        }
+        deltaSym += " )";
+
+    }
+    console.log(deltaSym);
+}
+
 SFG.prototype.getPaths = function(startNodeID,endNodeID){
     debugClear();
     debug("Paths");
@@ -502,25 +542,13 @@ SFG.prototype.getPaths = function(startNodeID,endNodeID){
     this.dfs(startNodeID,endNodeID,paths,{},[]);
     for (i in paths)
         debug(paths[i]);
+    return paths;
 }
 
 //helper method
-SFG.prototype.dfs= function(nodeID,destID,paths,visited,stack){
+SFG.prototype.dfs = function(nodeID,destID,paths,visited,stack){
     visited[nodeID] = true;
     stack.push(nodeID);
-    /*
-    if (nodeID == destID){
-        //reached the destination
-        path = stack.slice(0,stack.length);
-        paths.push(path);
-    }else{
-        //visit neighbours
-        for (n in this.graph[nodeID]){
-            if (!visited[n])
-                this.dfs(n,destID,paths,visited,stack);
-        }
-    }
-    */
     for (n in this.graph[nodeID]){
         if (n == destID){
             path = stack.slice(0,stack.length);
@@ -536,6 +564,7 @@ SFG.prototype.dfs= function(nodeID,destID,paths,visited,stack){
 
 SFG.prototype.getLoops = function(){
     debug("Loops");
+    var singleLoops = [];
     var visited = {};
     for (i in this.nodes){
         nodeID = this.nodes[i].id;
@@ -543,20 +572,79 @@ SFG.prototype.getLoops = function(){
         this.dfs(nodeID,nodeID,paths,visited,[]);
         visited[nodeID] = true;
         for (j in paths){
-            var l = new Loop(paths[j],this.graph);
+            var l = new Path(paths[j],this.graph);
             debug(paths[j]);
             debug("gain = " + l.gain());
+            singleLoops.push(l);
+            l.id = singleLoops.length;
         }
     }
+
+    console.log(singleLoops);
+
+    var pairs = [];
+    for (var i=0;i<singleLoops.length;i++){
+        for (var j=i+1;j<singleLoops.length;j++){
+            if (!singleLoops[i].isTouching(singleLoops[j]))
+                pairs.push([singleLoops[i],singleLoops[j]]);
+        }
+    }
+
+    var nloops = [pairs];
+    var hash = {};
+    while (true){
+        var nloop = nloops[nloops.length-1];
+        var nnloop = [];
+        for (var i=0;i<singleLoops.length;i++){
+            //loop over pairs or triples ..etc
+            for (var j=0;j<nloop.length;j++){
+                //loop on each pair or triple ..
+                var nonTouching = true;
+                var loopArray = nloop[j];
+                for (var k=0;k<loopArray.length;k++){
+                    if (loopArray[k].isTouching(singleLoops[i])){
+                        nonTouching = false;
+                        break;
+                    }
+                }
+                if (nonTouching){
+                    var newLoopArray = [];
+                    var ids = [];
+                    for (var j=0;j<loopArray.length;j++){
+                        newLoopArray.push(loopArray[j]);
+                        ids.push(loopArray[j].id);
+                    }
+                    newLoopArray.push(singleLoops[i]);
+                    ids.push(singleLoops[i].id);
+                    ids.sort();
+                    var hashStr = "";
+                    for (index in ids)
+                        hashStr += ids[index] +",";
+                    if (hash[hashStr] == undefined){
+                        nnloop.push(newLoopArray);
+                        hash[hashStr] = true;
+                    }
+                }
+            }
+        }
+        if (nnloop.length == 0)
+            break;
+        nloops.push(nnloop);
+    }
+    nloops.splice(0,0,singleLoops);
+    console.log("----");
+    console.log(nloops);
+    return nloops;
 }
 
 //--------------------------------------------
-function Loop(nodesList,graph){
+function Path(nodesList,graph){
     this.nodes = nodesList;
     this.graph = graph;
+    this.id = -1;
 }
 
-Loop.prototype.gain = function(){
+Path.prototype.gain = function(){
     var gain = "";
     for (var i=1;i<this.nodes.length;i++){
         var prev = this.nodes[i-1];
@@ -567,6 +655,17 @@ Loop.prototype.gain = function(){
     }
     return gain;
 }
+
+Path.prototype.isTouching = function(path){
+    for (var i=0;i<this.nodes.length;i++){
+        for (var j=0;j<path.nodes.length;j++){
+            if (this.nodes[i] == path.nodes[j])
+                return true;
+        }
+    }
+    return false;
+}
+
 //--------------------------------------------
 function Node(id){
     this.id = id;
