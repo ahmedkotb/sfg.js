@@ -503,6 +503,12 @@ SFG.prototype.zoomOut = function(){
     this.redraw();
 }
 
+SFG.prototype.clear = function(){
+    this.nodes = [];
+    this.edges = [];
+    this.nodeCounter = 0;
+    this.redraw();
+}
 
 //--------------------------------------------
 // SFG solve method

@@ -22,6 +22,9 @@
             function solve(){
                 sfg.solve(0,5);
             }
+            function clear(){
+                sfg.clear();
+            }
         </script>
   </head>
   <body onload = "init()">
@@ -34,6 +37,7 @@
           <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
           <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
           <button id= "solve" onclick="solve()" > Solve </button>
+          <button id= "clear" onclick="sfg.clear()" > clear</button>
           </br>
           <canvas id="canvas" width="600" height="400" style="border:solid;">
             sfg canvas
