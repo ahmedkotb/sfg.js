@@ -561,10 +561,10 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
             }
 
             for (var k=1;k<loopArray.length;k++){
-                loopGain += " * " + loopArray[k].gain();
+                loopGain += "." + loopArray[k].gain();
                 for (var p=0;p<paths.length;p++){
                     pathsTouch[p] |= paths[p].isTouching(loopArray[k]);
-                    pathsLoopGain[p] += " * " + loopArray[k].gain();
+                    pathsLoopGain[p] += "." + loopArray[k].gain();
                 }
             }
 
@@ -599,6 +599,16 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
         console.log(pathsDeltaSym[p]);
         console.log("---");
     }
+    console.log("=====================");
+    console.log("Transfer Function : ");
+
+    var numerator = "";
+    for (var p=0;p<paths.length-1;p++)
+        numerator += "[ (" + pathsDeltaSym[p] + ") * (" + paths[p].gain() + ") ] + ";
+    numerator += "[ (" + pathsDeltaSym[paths.length-1] + ") * (" + paths[paths.length-1].gain() + ") ]";
+    console.log(numerator);
+    console.log("------------");
+    console.log(deltaSym);
 
 }
 
@@ -726,7 +736,7 @@ Path.prototype.gain = function(){
         var n = this.nodes[i];
         gain += this.graph[prev][n].label;
         if (i != this.nodes.length -1)
-            gain += " * ";
+            gain += ".";
     }
     return gain;
 }
