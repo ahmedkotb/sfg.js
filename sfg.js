@@ -502,37 +502,95 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
 
     var paths = this.getPaths(startNodeID,endNodeID);
     var loops = this.getLoops();
-    //calculate delta
+    //calculate main delta and paths delta
     var deltaSym = "1";
+    //paths data
+    var pathsDeltaSym = [];
+    var pathsTouch = [];
+    var pathsLoopGain = [];
+    var pathsCount = [];
+    var pathsTerm = [];
+    //init paths data
+    for (var i=0;i<paths.length;i++){
+        pathsDeltaSym.push("1");
+        pathsTouch.push(false);
+        pathsLoopGain.push("");
+        pathsTerm.push("");
+        pathsCount.push(0);
+    }
     for(var i=0;i<loops.length;i++){
         var item = loops[i];
+        var sign = "";
         if (i%2 == 0)
-            deltaSym += " - ";
+            sign = " - ";
         else
-            deltaSym += " + ";
+            sign = " + ";
 
+        deltaSym += sign;
         deltaSym += "( ";
-        if (i==0){
-            for (var j=0;j<item.length-1;j++)
-                deltaSym += item[j].gain() + " + ";
-            deltaSym += item[item.length-1].gain();
-        }else{
-            for (var j=0;j<item.length;j++){
-                var loopArray = item[j];
-                var loopGain = "";
-                for (var k=0;k<loopArray.length-1;k++)
-                    loopGain += loopArray[k].gain()  + " * ";
-                loopGain += loopArray[loopArray.length-1].gain();
 
-                deltaSym += loopGain;
-                if (j != item.length-1)
-                    deltaSym += " + ";
+        for (var p=0;p<paths.length;p++){
+            pathsTerm[p] = "( ";
+            pathsCount[p] = 0;
+        }
+
+        for (var j=0;j<item.length;j++){
+            var loopArray = item[j];
+            var loopGain = "";
+            //re-init paths data
+            for (var p=0;p<paths.length;p++){
+                pathsTouch[p] = false;
+                pathsLoopGain[p] = "";
+            }
+
+            if (loopArray.length > 0){
+                loopGain = loopArray[0].gain();
+                for (var p=0;p<paths.length;p++){
+                    pathsTouch[p] |= paths[p].isTouching(loopArray[0]);
+                    pathsLoopGain[p] += loopArray[0].gain();
+                }
+            }
+
+            for (var k=1;k<loopArray.length;k++){
+                loopGain += " * " + loopArray[k].gain();
+                for (var p=0;p<paths.length;p++){
+                    pathsTouch[p] |= paths[p].isTouching(loopArray[k]);
+                    pathsLoopGain[p] += " * " + loopArray[k].gain();
+                }
+            }
+
+            deltaSym += loopGain;
+            if (j != item.length-1)
+                deltaSym += " + ";
+
+            for (var p=0;p<paths.length;p++){
+                if (!pathsTouch[p]){
+                    if (pathsCount[p] != 0)
+                        pathsTerm[p] += " + ";
+                    pathsCount[p]+=1;
+                    pathsTerm[p] += pathsLoopGain[p];
+                }
             }
         }
+
         deltaSym += " )";
+        for (var p=0;p<paths.length;p++){
+            if (pathsTerm[p] != "( ")
+                pathsDeltaSym[p] += sign + pathsTerm[p] + " )";
+        }
 
     }
+    console.log("deltaSYM");
     console.log(deltaSym);
+    console.log("====");
+    for (var p=0;p<paths.length;p++){
+        console.log("Path " + p);
+        console.log("gain : " + paths[p].gain());
+        console.log(paths[p]);
+        console.log(pathsDeltaSym[p]);
+        console.log("---");
+    }
+
 }
 
 SFG.prototype.getPaths = function(startNodeID,endNodeID){
@@ -540,9 +598,14 @@ SFG.prototype.getPaths = function(startNodeID,endNodeID){
     debug("Paths");
     var paths = [];
     this.dfs(startNodeID,endNodeID,paths,{},[]);
-    for (i in paths)
+    var pathsArray= [];
+    for (i in paths){
         debug(paths[i]);
-    return paths;
+        var path = new Path(paths[i],this.graph);
+        path.id = i;
+        pathsArray.push(path);
+    }
+    return pathsArray;
 }
 
 //helper method
@@ -631,7 +694,10 @@ SFG.prototype.getLoops = function(){
             break;
         nloops.push(nnloop);
     }
-    nloops.splice(0,0,singleLoops);
+    var indeploops = [];
+    for (i in singleLoops)
+        indeploops.push([singleLoops[i]]);
+    nloops.splice(0,0,indeploops);
     console.log("----");
     console.log(nloops);
     return nloops;
