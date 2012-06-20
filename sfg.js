@@ -419,11 +419,9 @@ SFG.prototype.addNode = function(x,y){
 
 SFG.prototype.addEdge = function(edge){
     if (this.graph[edge.startNode.id][edge.endNode.id] == undefined){
-        //TODO:check for self edges
         this.edges.push(edge);
         this.graph[edge.startNode.id][edge.endNode.id] = edge;
     }
-    //debug("no of edges = " + this.edges.length);
 }
 
 SFG.prototype.deleteSelected = function(){
