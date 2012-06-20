@@ -296,9 +296,28 @@ SFG.prototype.mousemove = function(e){
     }
 }
 
+SFG.prototype.isSomethingSelected = function(){
+    if (this.selected)
+        return true;
+    return false;
+}
+
+SFG.prototype.getSelectedLabel= function(){
+    if (this.isSomethingSelected())
+        return this.selected.label;
+    return "";
+}
+
+SFG.prototype.setSelectedLabel= function(label){
+    if (this.isSomethingSelected()){
+        this.selected.label = label;
+        this.redraw();
+    }
+}
+
 SFG.prototype.startAddingNode = function(){
     this.newNode = new Node(-1);
-    this.newNode.name = "new";
+    this.newNode.label = "new";
     this.state = STATES.ADD_NODE;
 
     if (this.selected != null){
@@ -760,7 +779,7 @@ Path.prototype.isTouching = function(path){
 //--------------------------------------------
 function Node(id){
     this.id = id;
-    this.name = "node " + this.id;
+    this.label = "node " + this.id;
     this.x = 0;
     this.y = 0;
     this.radius = DEFAULT_RADIUS;
@@ -783,8 +802,8 @@ Node.prototype.draw = function(ctx){
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#000000";
-    var width = ctx.measureText(this.name).width;
-    ctx.fillText(this.name,this.x-width/2.0,this.y+this.radius+10);
+    var width = ctx.measureText(this.label).width;
+    ctx.fillText(this.label,this.x-width/2.0,this.y+this.radius+10);
 }
 
 Node.prototype.setSelected = function(){
@@ -804,7 +823,7 @@ function ControlNode(arcEdge){
     this.arcEdge = arcEdge;
     this.x = arcEdge.controlPoint.x;
     this.y = arcEdge.controlPoint.y;
-    this.name = "";
+    this.label = "";
     this.radius = DEFAULT_RADIUS/1.5;
     this.color = "#FF0000";
 }
@@ -841,7 +860,7 @@ function LineEdge(startNode,endNode){
     this.endNode = endNode;
     this.color = "#000000";
     this.arrowColor = "#800000";
-    this.label = "a";
+    this.label = "e";
     this.controlPoint = {x:0,y:0};
     this.selfEdge = false;
     this.selfEdgeRadius = DEFAULT_RADIUS + 2;
@@ -1078,7 +1097,7 @@ function ArcEdge(startNode,endNode){
 
     this.color = "#000000";
     this.arrowColor = "#800000";
-    this.label = "a";
+    this.label = "e";
 }
 
 ArcEdge.prototype.setStartNode = function(startNode){
