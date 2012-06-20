@@ -149,23 +149,32 @@ function SFG(canvas){
         canvas.addEventListener('mousemove',this.mousemove,false);
 
         //Demo example for testing
-        this.addNode(100,150);
+        this.scale = 1.1;
+        this.addNode(50,150);
+        this.addNode(150,150);
         this.addNode(250,150);
-        this.addNode(100,250);
-        this.addNode(150,50);
-        this.addNode(250,250);
-        e = new ArcEdge(this.nodes[0],this.nodes[1]);
-        this.addEdge(e);
-        e = new LineEdge(this.nodes[1],this.nodes[1]);
-        this.addEdge(e);
-        e = new ArcEdge(this.nodes[2],this.nodes[2]);
-        this.addEdge(e);
-        e = new ArcEdge(this.nodes[1],this.nodes[3]);
-        this.addEdge(e);
-        e = new ArcEdge(this.nodes[0],this.nodes[3]);
-        this.addEdge(e);
-        e = new ArcEdge(this.nodes[4],this.nodes[4]);
-        this.addEdge(e);
+        this.addNode(350,150);
+        this.addNode(450,150);
+        this.addNode(550,150);
+        this.addNode(350,300);
+        this.addNode(250,300);
+
+        var e = new ArcEdge(this.nodes[0],this.nodes[1]); this.addEdge(e);e.label="g1";
+        var e = new ArcEdge(this.nodes[1],this.nodes[2]); this.addEdge(e);e.label="g2";
+        var e = new ArcEdge(this.nodes[2],this.nodes[3]); this.addEdge(e);e.label="g3";
+        var e = new ArcEdge(this.nodes[3],this.nodes[4]); this.addEdge(e);e.label="g4";
+        var e = new ArcEdge(this.nodes[4],this.nodes[5]); this.addEdge(e);e.label="g5";
+
+        var e = new ArcEdge(this.nodes[2],this.nodes[1]); this.addEdge(e);e.label="h1";
+        e.controlPoint.y += 60;
+        var e = new ArcEdge(this.nodes[4],this.nodes[3]); this.addEdge(e);e.label="h2";
+        e.controlPoint.y += 60;
+
+        var e = new ArcEdge(this.nodes[5],this.nodes[6]); this.addEdge(e);e.label="g6";
+        var e = new ArcEdge(this.nodes[6],this.nodes[7]); this.addEdge(e);e.label="g7";
+        var e = new ArcEdge(this.nodes[7],this.nodes[6]); this.addEdge(e);e.label="h4";
+        e.controlPoint.y += 60;
+        var e = new ArcEdge(this.nodes[7],this.nodes[1]); this.addEdge(e);e.label="g8";
         this.redraw();
     }else{
         alert("canvas not supported!");
