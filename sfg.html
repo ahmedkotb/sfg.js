@@ -1,5 +1,6 @@
 <html>
     <head>
+        <link rel="stylesheet" href="sfg.css" type="text/css"/>
         <script type="text/javascript" src="sfg.js"></script>
         <script type="text/javascript">
             sfg = null;
@@ -34,19 +35,33 @@
   <body onload = "init()">
       <div align="center">
           <h2>SFG</h2>
-          <button id= "addNode" onclick="addNode()" > add node </button>
-          <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
-          <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
-          <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
-          <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
-          <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
-          <button id= "clear" onclick="sfg.clear()" > clear</button>
-          <button id= "clear" onclick="editLabel()" > Edit Label</button>
-          <button id= "solve" onclick="solve()" > Solve </button>
-          </br>
-          <canvas id="canvas" width="600" height="400" style="border:solid;">
-            sfg canvas
-          </canvas>
+      </div>
+      <div>
+          <div width="600px" style = "float:left;margin-right:20px">
+              <button id= "addNode" onclick="addNode()" > add node </button>
+              <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
+              <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
+              <br/>
+              <button id= "editLabel" onclick="editLabel()" > Edit Label</button>
+              <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
+              <button id= "clear" onclick="sfg.clear()" > clear</button>
+              <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
+              <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
+              <button id= "solve" onclick="solve()" > Solve </button>
+              <button id= "editLabel" onclick="editLabel()" > Edit Label</button>
+              <br/>
+              <canvas id="canvas" width="800px" height="400px" style="border:solid;">
+                sfg canvas
+              </canvas>
+          </div>
+          <div style="height:150px;width:170px;overflow-y:auto;display:inline-block">
+              <table id="symtable">
+                  <tr>
+                      <th> Symbol </th>
+                      <th> Value </th>
+                  </tr>
+              </table>
+          </div>
       </div>
 
       <div id="debug">

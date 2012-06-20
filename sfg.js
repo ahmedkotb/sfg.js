@@ -131,6 +131,7 @@ function SFG(canvas){
 
         this.graph = {};
         this.nodeCounter = 0;
+        this.symbols = {};
 
         this.nodes = [];
         this.edges = [];
