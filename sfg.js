@@ -304,6 +304,10 @@ SFG.prototype.getSymbols = function(){
     return syms;
 }
 
+SFG.prototype.setSymbolValue = function(symbol,value){
+    this.symbols[symbol].value = value;
+}
+
 SFG.prototype.isSomethingSelected = function(){
     if (this.selected)
         return true;
@@ -573,18 +577,25 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
     var loops = this.getLoops();
     //calculate main delta and paths delta
     var deltaSym = "1";
+    var deltaVal = 1;
     //paths data
     var pathsDeltaSym = [];
+    var pathsDeltaValue = [];
     var pathsTouch = [];
     var pathsLoopGain = [];
+    var pathsLoopGainValue = [];
     var pathsCount = [];
     var pathsTerm = [];
+    var pathsTermValue = [];
     //init paths data
     for (var i=0;i<paths.length;i++){
         pathsDeltaSym.push("1");
+        pathsDeltaValue.push(1);
         pathsTouch.push(false);
         pathsLoopGain.push("");
+        pathsLoopGainValue.push(0);
         pathsTerm.push("");
+        pathsTermValue.push(0);
         pathsCount.push(0);
     }
     for(var i=0;i<loops.length;i++){
@@ -603,32 +614,40 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
             pathsCount[p] = 0;
         }
 
+        var deltaValTerm = 0;
         for (var j=0;j<item.length;j++){
             var loopArray = item[j];
             var loopGain = "";
+            var loopGainValue = 0;
             //re-init paths data
             for (var p=0;p<paths.length;p++){
                 pathsTouch[p] = false;
                 pathsLoopGain[p] = "";
+                pathsLoopGainValue[p] = 0;
             }
 
             if (loopArray.length > 0){
                 loopGain = loopArray[0].gain();
+                loopGainValue = loopArray[0].gainValue(this.symbols);
                 for (var p=0;p<paths.length;p++){
                     pathsTouch[p] |= paths[p].isTouching(loopArray[0]);
                     pathsLoopGain[p] += loopArray[0].gain();
+                    pathsLoopGainValue[p] += loopArray[0].gainValue(this.symbols);
                 }
             }
 
             for (var k=1;k<loopArray.length;k++){
                 loopGain += "." + loopArray[k].gain();
+                loopGainValue *= loopArray[k].gainValue(this.symbols);
                 for (var p=0;p<paths.length;p++){
                     pathsTouch[p] |= paths[p].isTouching(loopArray[k]);
                     pathsLoopGain[p] += "." + loopArray[k].gain();
+                    pathsLoopGainValue[p] *= loopArray[k].gainValue(this.symbols);
                 }
             }
 
             deltaSym += loopGain;
+            deltaValTerm += loopGainValue;
             if (j != item.length-1)
                 deltaSym += " + ";
 
@@ -638,48 +657,65 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
                         pathsTerm[p] += " + ";
                     pathsCount[p]+=1;
                     pathsTerm[p] += pathsLoopGain[p];
+                    pathsTermValue[p] += pathsLoopGainValue[p];
                 }
             }
         }
+
+        if (i%2 == 0)
+            deltaVal -= deltaValTerm;
+        else
+            deltaVal += deltaValTerm;
 
         deltaSym += " )";
         for (var p=0;p<paths.length;p++){
             if (pathsTerm[p] != "( ")
                 pathsDeltaSym[p] += sign + pathsTerm[p] + " )";
+            if (i%2 == 0)
+                pathsDeltaValue[p] -= pathsTermValue[p];
+            else
+                pathsDeltaValue[p] += pathsTermValue[p];
         }
 
     }
     console.log("deltaSYM");
     console.log(deltaSym);
+    console.log("deltaVAL");
+    console.log(deltaVal);
     console.log("====");
     for (var p=0;p<paths.length;p++){
         console.log("Path " + p);
         console.log("gain : " + paths[p].gain());
         console.log(paths[p]);
         console.log(pathsDeltaSym[p]);
+        console.log(pathsDeltaValue[p]);
         console.log("---");
     }
     console.log("=====================");
     console.log("Transfer Function : ");
 
     var numerator = "";
-    for (var p=0;p<paths.length-1;p++)
+    var numeratorVal = 0;
+    for (var p=0;p<paths.length-1;p++){
         numerator += "[ (" + pathsDeltaSym[p] + ") * (" + paths[p].gain() + ") ] + ";
+        numeratorVal += pathsDeltaValue[p] * paths[p].gainValue(this.symbols);
+    }
     numerator += "[ (" + pathsDeltaSym[paths.length-1] + ") * (" + paths[paths.length-1].gain() + ") ]";
+    console.log("SYMS")
     console.log(numerator);
     console.log("------------");
     console.log(deltaSym);
 
+    console.log("NUMERIC")
+    console.log("( " + numeratorVal + " ) / ( " + deltaVal + " )");
+
 }
 
 SFG.prototype.getPaths = function(startNodeID,endNodeID){
-    debugClear();
-    debug("Paths");
     var paths = [];
     this.dfs(startNodeID,endNodeID,paths,{},[]);
     var pathsArray= [];
     for (i in paths){
-        debug(paths[i]);
         var path = new Path(paths[i],this.graph);
         path.id = i;
         pathsArray.push(path);
@@ -705,7 +741,6 @@ SFG.prototype.dfs = function(nodeID,destID,paths,visited,stack){
 }
 
 SFG.prototype.getLoops = function(){
-    debug("Loops");
     var singleLoops = [];
     var visited = {};
     for (i in this.nodes){
@@ -715,8 +750,6 @@ SFG.prototype.getLoops = function(){
         visited[nodeID] = true;
         for (j in paths){
             var l = new Path(paths[j],this.graph);
-            debug(paths[j]);
-            debug("gain = " + l.gain());
             singleLoops.push(l);
             l.id = singleLoops.length;
         }
@@ -797,6 +830,18 @@ Path.prototype.gain = function(){
         gain += this.graph[prev][n].label;
         if (i != this.nodes.length -1)
             gain += ".";
+    }
+    return gain;
+}
+
+Path.prototype.gainValue = function(symTable){
+    var gain = 1;
+    for (var i=1;i<this.nodes.length;i++){
+        var prev = this.nodes[i-1];
+        var n = this.nodes[i];
+        var label = this.graph[prev][n].label;
+        var value = symTable[label].value;
+        gain *= value;
     }
     return gain;
 }
