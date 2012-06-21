@@ -160,22 +160,22 @@ function SFG(canvas){
         this.addNode(350,300);
         this.addNode(250,300);
 
-        var e = new ArcEdge(this.nodes[0],this.nodes[1]); this.addEdge(e);e.label="g1";
-        var e = new ArcEdge(this.nodes[1],this.nodes[2]); this.addEdge(e);e.label="g2";
-        var e = new ArcEdge(this.nodes[2],this.nodes[3]); this.addEdge(e);e.label="g3";
-        var e = new ArcEdge(this.nodes[3],this.nodes[4]); this.addEdge(e);e.label="g4";
-        var e = new ArcEdge(this.nodes[4],this.nodes[5]); this.addEdge(e);e.label="g5";
+        var e = new ArcEdge(this.nodes[0],this.nodes[1]);e.label="g1"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[1],this.nodes[2]);e.label="g2"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[2],this.nodes[3]);e.label="g3"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[3],this.nodes[4]);e.label="g4"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[4],this.nodes[5]);e.label="g5"; this.addEdge(e);
 
-        var e = new ArcEdge(this.nodes[2],this.nodes[1]); this.addEdge(e);e.label="h1";
+        var e = new ArcEdge(this.nodes[2],this.nodes[1]);e.label="h1"; this.addEdge(e);
         e.controlPoint.y += 60;
-        var e = new ArcEdge(this.nodes[4],this.nodes[3]); this.addEdge(e);e.label="h2";
+        var e = new ArcEdge(this.nodes[4],this.nodes[3]);e.label="h2"; this.addEdge(e);
         e.controlPoint.y += 60;
 
-        var e = new ArcEdge(this.nodes[5],this.nodes[6]); this.addEdge(e);e.label="g6";
-        var e = new ArcEdge(this.nodes[6],this.nodes[7]); this.addEdge(e);e.label="g7";
-        var e = new ArcEdge(this.nodes[7],this.nodes[6]); this.addEdge(e);e.label="h4";
+        var e = new ArcEdge(this.nodes[5],this.nodes[6]);e.label="g6"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[6],this.nodes[7]);e.label="g7"; this.addEdge(e);
+        var e = new ArcEdge(this.nodes[7],this.nodes[6]);e.label="h4"; this.addEdge(e);
         e.controlPoint.y += 60;
-        var e = new ArcEdge(this.nodes[7],this.nodes[1]); this.addEdge(e);e.label="g8";
+        var e = new ArcEdge(this.nodes[7],this.nodes[1]);e.label="g8"; this.addEdge(e);
         this.redraw();
     }else{
         alert("canvas not supported!");
@@ -297,6 +297,13 @@ SFG.prototype.mousemove = function(e){
     }
 }
 
+SFG.prototype.getSymbols = function(){
+    var syms = [];
+    for (s in this.symbols)
+        syms.push({sym:s,value:this.symbols[s].value});
+    return syms;
+}
+
 SFG.prototype.isSomethingSelected = function(){
     if (this.selected)
         return true;
@@ -309,8 +316,25 @@ SFG.prototype.getSelectedLabel= function(){
     return "";
 }
 
-SFG.prototype.setSelectedLabel= function(label){
+SFG.prototype.setSelectedLabel = function(label){
     if (this.isSomethingSelected()){
+        //in case of edges
+        if (this.selected instanceof LineEdge
+                || this.selected instanceof ArcEdge){
+
+            if (this.selected.label != label){
+                if (this.symbols[this.selected.label] != undefined){
+                    this.symbols[this.selected.label].count--;
+                    if (this.symbols[this.selected.label].count == 0)
+                        delete this.symbols[this.selected.label];
+                }
+            }
+
+            if (this.symbols[label] == undefined)
+                this.symbols[label] = {value:1.0,count:1};
+            else
+                this.symbols[label].count++;
+        }
         this.selected.label = label;
         this.redraw();
     }
@@ -421,6 +445,12 @@ SFG.prototype.addEdge = function(edge){
     if (this.graph[edge.startNode.id][edge.endNode.id] == undefined){
         this.edges.push(edge);
         this.graph[edge.startNode.id][edge.endNode.id] = edge;
+
+        if (this.symbols[edge.label] == undefined)
+            this.symbols[edge.label] = {value:1.0,count:1};
+        else
+            this.symbols[edge.label].count+=1;
+
     }
 }
 
@@ -467,6 +497,11 @@ SFG.prototype.deleteEdge = function(edge){
     if (index != -1)
         this.edges.splice(index,1);
     delete this.graph[from.id][to.id];
+
+    //modify symtable
+    this.symbols[edge.label].count--;
+    if (this.symbols[edge.label].count == 0)
+        delete this.symbols[edge.label];
 }
 
 SFG.prototype.redraw = function(){
@@ -525,6 +560,7 @@ SFG.prototype.clear = function(){
     this.nodes = [];
     this.edges = [];
     this.nodeCounter = 0;
+    this.symbols = {};
     this.redraw();
 }
 
