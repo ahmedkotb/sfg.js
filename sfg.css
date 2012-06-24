@@ -1,10 +1,24 @@
-table{
+table#symtable{
     border-collapse:collapse;
 }
-td,th{
+table#symtable th{
+    background-color:#A7C942;
+    border:1px solid black;
+    color:#fff;
     text-align:center;
 }
-table,th,tr,td{
+table#symtable td{
+    text-align:center;
+    border:1px solid black;
+    width:150px
+}
+table#symtable tr.even{
+    background-color:#eee;
+    border:1px solid black;
+    width:150px
+}
+table#symtable tr.odd{
+    background-color:#fff;
     border:1px solid black;
     width:150px
 }

@@ -106,6 +106,10 @@
                     var value = symbols[i].value;
 
                     var row = table.insertRow(table.rows.length);
+                    if (i%2 == 0)
+                        row.className = "even";
+                    else
+                        row.className = "odd";
                     clickFunction(row,symbol,value);
 
                     var cellLeft = row.insertCell(0);
@@ -139,23 +143,23 @@
           <h2>SFG</h2>
       </div>
       <div>
+          <button id= "addNode" onclick="addNode()" > add node </button>
+          <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
+          <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
+
+          <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
+          <button id= "clear" onclick="clearAll()" > clear</button>
+          <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
+          <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
+          <button id= "solve" onclick="solve()" > Solve </button>
+          <button id= "editLabel" onclick="editLabel()" > Edit Label</button>
+          <br/>
           <div width="600px" style = "float:left;margin-right:20px">
-              <button id= "addNode" onclick="addNode()" > add node </button>
-              <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
-              <button id= "addArcEdge" onclick="addArcEdge()" > add arc edge </button>
-              <br/>
-              <button id= "deleteItem" onclick="deleteItem()" > delete selected </button>
-              <button id= "clear" onclick="clearAll()" > clear</button>
-              <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
-              <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
-              <button id= "solve" onclick="solve()" > Solve </button>
-              <button id= "editLabel" onclick="editLabel()" > Edit Label</button>
-              <br/>
               <canvas id="canvas" width="800px" height="400px" style="border:solid;">
                 sfg canvas
               </canvas>
           </div>
-          <div style="height:150px;width:170px;overflow-y:auto;display:inline-block">
+          <div style="height:150px;width:170px;overflow-y:auto;display:inline-block" title="click on a symbol to change its value">
               <table id="symtable">
                   <tr>
                       <th> Symbol </th>
