@@ -2,6 +2,7 @@ var DEFAULT_RADIUS = 12
 var DEFAULT_COLOR = "#228b22"
 var DEFAULT_EDGE_COLOR = "#000000"
 var DEFAULT_SELECTED_COLOR = "#0000FF"
+var DEFAULT_MARKED_COLOR = "#FF9933"
 
 var STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
           EDGE_WAIT_NODE1: 3,EDGE_WAIT_NODE2: 4,
@@ -139,6 +140,7 @@ function SFG(canvas){
         this.selectedNode = null;
 
         this.selected = null;
+        this.markedPath = null;
 
         this.newNode = null;
         this.newEdge = null;
@@ -816,6 +818,34 @@ SFG.prototype.getLoops = function(){
     return nloops;
 }
 
+SFG.prototype.unMarkPath = function(path){
+
+    for (var i=0;i<this.nodes.length;i++){
+        var node = this.ndoes[path.nodes[i]];
+        node.tag = "";
+        node.setUnMarked();
+    }
+
+    this.redraw();
+}
+
+SFG.prototype.markPath = function(path){
+
+    if (this.markedPath != null)
+        this.unMarkPath(this.markedPath);
+
+    var to = path.nodes.length;
+    if (path.nodes[0] == path.nodes[path.nodes.length-1])
+        to--;
+    for (var i=0;i<to;i++){
+        var node = this.nodes[path.nodes[i]];
+        node.tag = (i+1) + "";
+        node.setMarked();
+    }
+
+    this.markedPath = path;
+    this.redraw();
+}
 //--------------------------------------------
 function Path(nodesList,graph){
     this.nodes = nodesList;
@@ -865,6 +895,7 @@ function Node(id){
     this.y = 0;
     this.radius = DEFAULT_RADIUS;
     this.color = DEFAULT_COLOR;
+    this.tag = "";
 }
 
 Node.prototype.setX = function(x){
@@ -883,8 +914,25 @@ Node.prototype.draw = function(ctx){
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#000000";
+    //drawing node label
     var width = ctx.measureText(this.label).width;
     ctx.fillText(this.label,this.x-width/2.0,this.y+this.radius+10);
+    //drawing node tag
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    var width = ctx.measureText(this.tag).width;
+    var height = 10;
+    ctx.font = "bold 11pt Courir";
+    ctx.fillText(this.tag,this.x-width/2.0,this.y+height/2.0);
+    ctx.restore();
+}
+
+Node.prototype.setMarked = function(){
+    this.color = DEFAULT_MARKED_COLOR;
+}
+
+Node.prototype.setUnMarked = function(){
+    this.color = DEFAULT_COLOR;
 }
 
 Node.prototype.setSelected = function(){
@@ -907,6 +955,7 @@ function ControlNode(arcEdge){
     this.label = "";
     this.radius = DEFAULT_RADIUS/1.5;
     this.color = "#FF0000";
+    this.tag = "";
 }
 
 ControlNode.prototype.setX = function(x){
