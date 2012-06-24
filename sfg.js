@@ -708,7 +708,8 @@ SFG.prototype.solve = function(startNodeID,endNodeID){
 
     console.log("NUMERIC")
     console.log("( " + numeratorVal + " ) / ( " + deltaVal + " )");
-
+    return {sym:{num:numerator,delta:deltaSym},
+        numeric:{num:numeratorVal,delta:deltaVal}};
 }
 
 SFG.prototype.getPaths = function(startNodeID,endNodeID){

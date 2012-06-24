@@ -31,7 +31,43 @@
             }
 
             function solve(){
-                sfg.solve(0,5);
+                var padStr = function (str,length,chr){
+                    var pad = (length-str.length)/2;
+                    var c = 0;
+                    while (c < pad){
+                        str = chr + str;
+                        c++;
+                    }
+                    c = 0;
+                    while (c < pad){
+                        str += chr;
+                        c++;
+                    }
+                    return str;
+                }
+                var result = sfg.solve(0,5);
+                document.getElementById("results");
+                results.innerHTML = "";
+                var symHTML = "<h3> Symbolic </h3>";
+                var deltaLen = result.sym.delta.length;
+                var numLen = result.sym.num.length;
+                var line = "";
+                if (numLen < deltaLen) {
+                    result.sym.num = padStr(result.sym.num,deltaLen," ");
+                    line = padStr(line,deltaLen,"_");
+                }else{
+                    result.sym.delta = padStr(result.sym.delta,numLen," ");
+                    line = padStr(line,numLen,"-");
+                }
+
+                symHTML += "<pre>" + result.sym.num + "</pre>";
+                symHTML += line;
+                symHTML += "<pre>" +result.sym.delta+ "</pre>";
+                symHTML += "<br/>";
+                symHTML += "<h3> Numeric </h3>";
+                symHTML += result.numeric.num + " / " + result.numeric.delta
+                        + " = " + result.numeric.num/result.numeric.delta;
+                results.innerHTML = symHTML;
             }
 
             function refreshSymbolsTable(){
@@ -127,6 +163,11 @@
                   </tr>
               </table>
           </div>
+      </div>
+      <div style="clear:left">
+        <h2> Results </h2>
+        <div id="results" style="height:100px;width:800px;border:1px solid black;overflow:auto;padding:10px">
+        </div>
       </div>
 
       <div id="debug">
