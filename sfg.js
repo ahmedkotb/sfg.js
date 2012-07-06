@@ -608,16 +608,9 @@ SFG.prototype.solve = function(srcLabel,destLabel){
         pathsTermValue.push(0);
         pathsCount.push(0);
     }
+
     for(var i=0;i<loops.length;i++){
         var item = loops[i];
-        var sign = "";
-        if (i%2 == 0)
-            sign = " - ";
-        else
-            sign = " + ";
-
-        deltaSym += sign;
-        deltaSym += "( ";
 
         for (var p=0;p<paths.length;p++){
             pathsTerm[p] = "( ";
@@ -625,6 +618,7 @@ SFG.prototype.solve = function(srcLabel,destLabel){
         }
 
         var deltaValTerm = 0;
+        var deltaSymComp = "";
         for (var j=0;j<item.length;j++){
             var loopArray = item[j];
             var loopGain = "";
@@ -656,10 +650,10 @@ SFG.prototype.solve = function(srcLabel,destLabel){
                 }
             }
 
-            deltaSym += loopGain;
+            deltaSymComp += loopGain;
             deltaValTerm += loopGainValue;
             if (j != item.length-1)
-                deltaSym += " + ";
+                deltaSymComp += " + ";
 
             for (var p=0;p<paths.length;p++){
                 if (!pathsTouch[p]){
@@ -672,12 +666,23 @@ SFG.prototype.solve = function(srcLabel,destLabel){
             }
         }
 
-        if (i%2 == 0)
+        var sign = "";
+        if (i%2 == 0){
             deltaVal -= deltaValTerm;
-        else
+            sign = " - ";
+        }
+        else{
             deltaVal += deltaValTerm;
+            sign = " + ";
+        }
 
-        deltaSym += " )";
+        if (deltaSymComp != ""){
+            deltaSym += sign;
+            deltaSym += "( ";
+            deltaSym += deltaSymComp;
+            deltaSym += " )";
+        }
+
         for (var p=0;p<paths.length;p++){
             if (pathsTerm[p] != "( ")
                 pathsDeltaSym[p] += sign + pathsTerm[p] + " )";
