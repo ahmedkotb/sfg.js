@@ -132,6 +132,7 @@ function SFG(canvas){
 
         this.graph = {};
         this.nodeCounter = 0;
+        this.nodeMap = {};
         this.symbols = {};
 
         this.nodes = [];
@@ -153,14 +154,10 @@ function SFG(canvas){
 
         //Demo example for testing
         this.scale = 1.1;
-        this.addNode(50,150);
-        this.addNode(150,150);
-        this.addNode(250,150);
-        this.addNode(350,150);
-        this.addNode(450,150);
-        this.addNode(550,150);
-        this.addNode(350,300);
-        this.addNode(250,300);
+        this.addNode(50,150); this.addNode(150,150);
+        this.addNode(250,150); this.addNode(350,150);
+        this.addNode(450,150); this.addNode(550,150);
+        this.addNode(350,300); this.addNode(250,300);
 
         var e = new ArcEdge(this.nodes[0],this.nodes[1]);e.label="g1"; this.addEdge(e);
         var e = new ArcEdge(this.nodes[1],this.nodes[2]);e.label="g2"; this.addEdge(e);
@@ -340,6 +337,9 @@ SFG.prototype.setSelectedLabel = function(label){
                 this.symbols[label] = {value:1.0,count:1};
             else
                 this.symbols[label].count++;
+        }else if (this.selected instanceof Node){
+            delete this.nodeMap[this.selected.label];
+            this.nodeMap[label] = this.selected;
         }
         this.selected.label = label;
         this.redraw();
@@ -444,6 +444,7 @@ SFG.prototype.addNode = function(x,y){
     node.setX(x);
     node.setY(y);
     this.nodes.push(node);
+    this.nodeMap[node.label] = node;
     this.redraw();
 }
 
@@ -567,14 +568,21 @@ SFG.prototype.clear = function(){
     this.edges = [];
     this.nodeCounter = 0;
     this.symbols = {};
+    this.nodeMap = {};
     this.redraw();
 }
 
 //--------------------------------------------
 // SFG solve method
 
-SFG.prototype.solve = function(startNodeID,endNodeID){
+SFG.prototype.solve = function(srcLabel,destLabel){
 
+    if (this.nodeMap[srcLabel] == undefined  ||
+            this.nodeMap[destLabel] == undefined){
+        alert("please make sures node with the given labels exists");
+    }
+    var startNodeID = this.nodeMap[srcLabel].id;
+    var endNodeID = this.nodeMap[destLabel].id;
     var paths = this.getPaths(startNodeID,endNodeID);
     var loops = this.getLoops();
     //calculate main delta and paths delta

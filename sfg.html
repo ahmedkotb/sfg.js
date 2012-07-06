@@ -31,6 +31,17 @@
             }
 
             function solve(){
+                var result = null;
+                var source = prompt("Source node name ?","");
+                if (source){
+                    var dest = prompt("Destination node name ?","");
+                    if (dest)
+                        result = sfg.solve(source,dest);
+                    else
+                        return;
+
+                }else
+                    return;
                 var padStr = function (str,length,chr){
                     var pad = (length-str.length)/2;
                     var c = 0;
@@ -45,7 +56,6 @@
                     }
                     return str;
                 }
-                var result = sfg.solve(0,5);
                 document.getElementById("results");
                 results.innerHTML = "";
                 var symHTML = "<h3> Symbolic </h3>";
