@@ -298,8 +298,10 @@ SFG.prototype.mousemove = function(e){
 
 SFG.prototype.getSymbols = function(){
     var syms = [];
-    for (s in this.symbols)
-        syms.push({sym:s,value:this.symbols[s].value});
+    for (s in this.symbols){
+        if (s != "1")
+            syms.push({sym:s,value:this.symbols[s].value});
+    }
     return syms;
 }
 
@@ -701,6 +703,7 @@ SFG.prototype.solve = function(srcLabel,destLabel){
     for (var p=0;p<paths.length;p++){
         console.log("Path " + p);
         console.log("gain : " + paths[p].gain());
+        console.log("gain : " + paths[p].gainValue(this.symbols));
         console.log(paths[p]);
         console.log(pathsDeltaSym[p]);
         console.log(pathsDeltaValue[p]);
@@ -716,6 +719,7 @@ SFG.prototype.solve = function(srcLabel,destLabel){
         numeratorVal += pathsDeltaValue[p] * paths[p].gainValue(this.symbols);
     }
     numerator += "[ (" + pathsDeltaSym[paths.length-1] + ") * (" + paths[paths.length-1].gain() + ") ]";
+    numeratorVal += pathsDeltaValue[paths.length-1] * paths[paths.length-1].gainValue(this.symbols);
     console.log("SYMS")
     console.log(numerator);
     console.log("------------");
@@ -1003,7 +1007,7 @@ function LineEdge(startNode,endNode){
     this.endNode = endNode;
     this.color = "#000000";
     this.arrowColor = "#800000";
-    this.label = "e";
+    this.label = "1";
     this.controlPoint = {x:0,y:0};
     this.selfEdge = false;
     this.selfEdgeRadius = DEFAULT_RADIUS + 2;
@@ -1240,7 +1244,7 @@ function ArcEdge(startNode,endNode){
 
     this.color = "#000000";
     this.arrowColor = "#800000";
-    this.label = "e";
+    this.label = "1";
 }
 
 ArcEdge.prototype.setStartNode = function(startNode){
