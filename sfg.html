@@ -31,53 +31,44 @@
             }
 
             function solve(){
-                var result = null;
-                var source = prompt("Source node name ?","");
-                if (source){
-                    var dest = prompt("Destination node name ?","");
-                    if (dest)
-                        result = sfg.solve(source,dest);
-                    else
-                        return;
-
-                }else
-                    return;
-                var padStr = function (str,length,chr){
-                    var pad = (length-str.length)/2;
-                    var c = 0;
-                    while (c < pad){
-                        str = chr + str;
-                        c++;
+                sfg.startSolve(function(result){
+                    var padStr = function (str,length,chr){
+                        var pad = (length-str.length)/2;
+                        var c = 0;
+                        while (c < pad){
+                            str = chr + str;
+                            c++;
+                        }
+                        c = 0;
+                        while (c < pad){
+                            str += chr;
+                            c++;
+                        }
+                        return str;
                     }
-                    c = 0;
-                    while (c < pad){
-                        str += chr;
-                        c++;
+                    document.getElementById("results");
+                    results.innerHTML = "";
+                    var symHTML = "<h3> Symbolic </h3>";
+                    var deltaLen = result.sym.delta.length;
+                    var numLen = result.sym.num.length;
+                    var line = "";
+                    if (numLen < deltaLen) {
+                        result.sym.num = padStr(result.sym.num,deltaLen," ");
+                        line = padStr(line,deltaLen,"_");
+                    }else{
+                        result.sym.delta = padStr(result.sym.delta,numLen," ");
+                        line = padStr(line,numLen,"-");
                     }
-                    return str;
-                }
-                document.getElementById("results");
-                results.innerHTML = "";
-                var symHTML = "<h3> Symbolic </h3>";
-                var deltaLen = result.sym.delta.length;
-                var numLen = result.sym.num.length;
-                var line = "";
-                if (numLen < deltaLen) {
-                    result.sym.num = padStr(result.sym.num,deltaLen," ");
-                    line = padStr(line,deltaLen,"_");
-                }else{
-                    result.sym.delta = padStr(result.sym.delta,numLen," ");
-                    line = padStr(line,numLen,"-");
-                }
 
-                symHTML += "<pre>" + result.sym.num + "</pre>";
-                symHTML += line;
-                symHTML += "<pre>" +result.sym.delta+ "</pre>";
-                symHTML += "<br/>";
-                symHTML += "<h3> Numeric </h3>";
-                symHTML += result.numeric.num + " / " + result.numeric.delta
-                        + " = " + result.numeric.num/result.numeric.delta;
-                results.innerHTML = symHTML;
+                    symHTML += "<pre>" + result.sym.num + "</pre>";
+                    symHTML += line;
+                    symHTML += "<pre>" +result.sym.delta+ "</pre>";
+                    symHTML += "<br/>";
+                    symHTML += "<h3> Numeric </h3>";
+                    symHTML += result.numeric.num + " / " + result.numeric.delta
+                            + " = " + result.numeric.num/result.numeric.delta;
+                    results.innerHTML = symHTML;
+                });
             }
 
             function refreshSymbolsTable(){

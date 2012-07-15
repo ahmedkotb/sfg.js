@@ -5,8 +5,8 @@ var DEFAULT_SELECTED_COLOR = "#0000FF"
 var DEFAULT_MARKED_COLOR = "#FF9933"
 
 var STATES = {NORMAL : 0, ADD_NODE: 1, NODE_MOVE: 2,
-          EDGE_WAIT_NODE1: 3,EDGE_WAIT_NODE2: 4,
-          PAN: 5
+          EDGE_WAIT_NODE1: 3, EDGE_WAIT_NODE2: 4,
+          PAN: 5, SRC_WAIT_NODE: 6, DEST_WAIT_NODE: 7
           };
 
 //helper functions
@@ -148,6 +148,11 @@ function SFG(canvas){
 
         this.controlNode = null;
 
+        //the method that gets called after solving the sfg
+        this.solveCallback = null;
+
+        this.srcNode = null;
+
         //status line displayed at the top of the canvas
         this.statusLine = "";
 
@@ -231,6 +236,23 @@ SFG.prototype.mousedown = function(e){
             this.style.cursor = "move";
         }
         sfg.selectItem(selected);
+    }else if (state == STATES.SRC_WAIT_NODE){
+        var selected = sfg.find(x,y);
+        if (selected instanceof Node){
+            sfg.selectItem(selected);
+            sfg.srcNode = selected;
+            sfg.state = STATES.DEST_WAIT_NODE;
+            sfg.setStatus("please choose destination node");
+        }
+    }else if (state == STATES.DEST_WAIT_NODE){
+        var selected = sfg.find(x,y);
+        if (selected instanceof Node){
+            sfg.selectItem(selected);
+            var result = sfg.solve(sfg.srcNode.label,selected.label);
+            sfg.solveCallback(result);
+            sfg.state = STATES.NORMAL;
+            sfg.setStatus("");
+        }
     }else if (state == STATES.EDGE_WAIT_NODE1){
         //sfg.newEdge must be initialized to empty edge
         //either by startAddingLineEdge or arc edge methods
@@ -314,6 +336,15 @@ SFG.prototype.keydown = function(e){
             this.state = STATES.NORMAL;
             this.newEdge = null;
             this.redraw();
+        }else if (this.state == STATES.SRC_WAIT_NODE
+                || this.state == STATES.DEST_WAIT_NODE){
+            this.state = STATES.NORMAL;
+            this.selectItem(null);
+            this.setStatus("");
+        }else if (this.state == STATES.NORMAL
+                || this.state == NODE_MOVE){
+            this.controlNode = null;
+            this.selectItem(null);
         }
     }
     //alert(unicode);
@@ -617,6 +648,17 @@ SFG.prototype.clear = function(){
 
 //--------------------------------------------
 // SFG solve method
+
+SFG.prototype.startSolve = function(callback){
+    this.solveCallback = callback;
+    if (this.selected instanceof Node){
+        this.state = STATES.DEST_WAIT_NODE;
+        this.setStatus("please choose destination node");
+    }else{
+        this.state = STATES.SRC_WAIT_NODE;
+        this.setStatus("please choose source node");
+    }
+}
 
 SFG.prototype.solve = function(srcLabel,destLabel){
 
