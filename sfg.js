@@ -305,10 +305,15 @@ SFG.prototype.mousemove = function(e){
 
 SFG.prototype.keydown = function(e){
     var ESCAPE = 27;
-    var unicode=e.keyCode? e.keyCode : e.charCode;
+    var unicode = e.keyCode? e.keyCode : e.charCode;
     if (unicode == ESCAPE){
         if (this.state == STATES.ADD_NODE){
             this.cancelAddingNode();
+        }else if (this.state == STATES.EDGE_WAIT_NODE1
+                || this.state == STATES.EDGE_WAIT_NODE2){
+            this.state = STATES.NORMAL;
+            this.newEdge = null;
+            this.redraw();
         }
     }
     //alert(unicode);
