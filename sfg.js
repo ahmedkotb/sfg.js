@@ -154,6 +154,10 @@ function SFG(canvas){
         canvas.addEventListener('mousedown',this.mousedown,false);
         canvas.addEventListener('mouseup',this.mouseup,false);
         canvas.addEventListener('mousemove',this.mousemove,false);
+        var me = this;
+        document.addEventListener('keydown',function(event){
+            me.keydown(event);
+        },true);
 
         //Demo example for testing
         this.scale = 1.1;
@@ -299,6 +303,17 @@ SFG.prototype.mousemove = function(e){
     }
 }
 
+SFG.prototype.keydown = function(e){
+    var ESCAPE = 27;
+    var unicode=e.keyCode? e.keyCode : e.charCode;
+    if (unicode == ESCAPE){
+        if (this.state == STATES.ADD_NODE){
+            this.cancelAddingNode();
+        }
+    }
+    //alert(unicode);
+}
+
 SFG.prototype.getSymbols = function(){
     var syms = [];
     for (s in this.symbols){
@@ -360,6 +375,12 @@ SFG.prototype.startAddingNode = function(){
         this.selected.setUnselected();
         this.selected = null;
     }
+}
+
+SFG.prototype.cancelAddingNode = function(){
+    this.newNode = null;
+    this.state = STATES.NORMAL;
+    this.redraw();
 }
 
 SFG.prototype.startAddingLineEdge = function(){
