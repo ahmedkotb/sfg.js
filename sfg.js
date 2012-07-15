@@ -148,6 +148,9 @@ function SFG(canvas){
 
         this.controlNode = null;
 
+        //status line displayed at the top of the canvas
+        this.statusLine = "";
+
         canvas.addEventListener('mousedown',this.mousedown,false);
         canvas.addEventListener('mouseup',this.mouseup,false);
         canvas.addEventListener('mousemove',this.mousemove,false);
@@ -513,9 +516,15 @@ SFG.prototype.deleteEdge = function(edge){
         delete this.symbols[edge.label];
 }
 
+SFG.prototype.setStatus = function(status){
+    this.statusLine = status;
+    this.redraw();
+}
+
 SFG.prototype.redraw = function(){
     //clear the canvas
     this.ctx.setTransform(1,0,0,1,0,0);
+    this.ctx.save();
     this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
 
     //draw grid
@@ -535,7 +544,14 @@ SFG.prototype.redraw = function(){
 
         this.ctx.stroke();
     }
+    //draw status line
+    this.ctx.fillStyle = "#000000";
+    var width = this.ctx.measureText(this.statusLine).width;
+    //this.ctx.font = "bold 11pt Courir";
+    this.ctx.font = "normal 11pt Arial";
+    this.ctx.fillText(this.statusLine,(this.canvas.width-width)/2,15);
 
+    this.ctx.restore();
     this.ctx.setTransform(this.scale,0,0,this.scale,this.transX,this.transY);
 
     var nodes = this.nodes;
@@ -552,7 +568,6 @@ SFG.prototype.redraw = function(){
     //draw control node if exists
     if (this.controlNode)
         this.controlNode.draw(this.ctx);
-
 }
 
 SFG.prototype.zoomIn = function(){
