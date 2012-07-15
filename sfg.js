@@ -127,8 +127,8 @@ function SFG(canvas){
 
         this.grid = true;
         this.scale = 1.5;
-        this.transX = -30;
-        this.transY = -30;
+        this.transX = 0;
+        this.transY = 0;
 
         this.graph = {};
         this.nodeCounter = 0;
@@ -165,7 +165,9 @@ function SFG(canvas){
         },true);
 
         //Demo example for testing
-        this.scale = 1.1;
+        this.scale = 1.4;
+        this.transX = -20;
+        this.transY = -90;
         this.addNode(50,150); this.addNode(150,150);
         this.addNode(250,150); this.addNode(350,150);
         this.addNode(450,150); this.addNode(550,150);
@@ -267,11 +269,17 @@ SFG.prototype.mousedown = function(e){
         sfg.state = STATES.NORMAL;
         if (selected == null){
             sfg.newEdge = null;
+            sfg.redraw();
             return;
         }
         var edge = sfg.newEdge;
         edge.setEndNode(selected);
-        sfg.addEdge(edge);
+        var edgeAdded = sfg.addEdge(edge);
+        if (!edgeAdded){
+            sfg.newEdge = null;
+            sfg.redraw();
+            return;
+        }
         if (edge instanceof ArcEdge)
             sfg.controlNode = new ControlNode(edge);
         sfg.selectItem(edge);
@@ -519,8 +527,9 @@ SFG.prototype.addEdge = function(edge){
             this.symbols[edge.label] = {value:1.0,count:1};
         else
             this.symbols[edge.label].count+=1;
-
+        return true;
     }
+    return false;
 }
 
 SFG.prototype.deleteSelected = function(){
