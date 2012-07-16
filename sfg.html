@@ -4,6 +4,10 @@
         <script type="text/javascript" src="sfg.js"></script>
         <script type="text/javascript">
             var sfg = null;
+            var paths = null;
+            var loops = null;
+            var srcLabel = "";
+            var destLabel = "";
 
             function init(){
                 var canvas = document.getElementById("canvas");
@@ -26,8 +30,55 @@
             }
 
             function deleteItem(){
-                sfg.deleteSelected();
-                refreshSymbolsTable();
+                if (sfg.isSomethingSelected()){
+                    sfg.deleteSelected();
+                    refreshSymbolsTable();
+                    srcLabel = "";
+                    destLabel = "";
+                    paths = null;
+                    loops = null;
+                    showPaths(null);
+                }
+            }
+
+            function showForwardPaths(){
+                var title = document.getElementById("pathslisttitle");
+                title.innerHTML = "Forward Paths";
+                showPaths(paths,"Path");
+            }
+
+            function showLoops(){
+                var title = document.getElementById("pathslisttitle");
+                title.innerHTML = "Loops";
+                showPaths(loops,"Loop");
+            }
+
+            function showPaths(paths,prefix){
+                var table = document.getElementById("pathslist");
+                //clear table
+                while (table.rows.length > 0)
+                    table.deleteRow(table.rows.length-1);
+
+                var clickFunction = function(row,path){
+                    row.onclick = function(){
+                        sfg.markPath(path);
+                    }
+                }
+                if (paths == null)
+                    return;
+
+                for (var i=0;i<paths.length;i++){
+                    var row = table.insertRow(table.rows.length);
+                    if (i%2 == 0)
+                        row.className = "even";
+                    else
+                        row.className = "odd";
+                    clickFunction(row,paths[i]);
+
+                    var cell = row.insertCell(0);
+                    var textNode = document.createTextNode(prefix + " " + i);
+                    cell.appendChild(textNode);
+                }
             }
 
             function solve(){
@@ -68,6 +119,11 @@
                     symHTML += result.numeric.num + " / " + result.numeric.delta
                             + " = " + result.numeric.num/result.numeric.delta;
                     results.innerHTML = symHTML;
+                    paths = result.paths;
+                    loops = result.loops;
+                    srcLabel = result.srcLabel;
+                    destLabel = result.destLabel;
+                    showLoops();
                 });
             }
 
@@ -161,11 +217,19 @@
               </canvas>
           </div>
           <div style="height:150px;width:170px;overflow-y:auto;display:inline-block" title="click on a symbol to change its value">
-              <table id="symtable">
+              <table id="symtable" class="mytable">
                   <tr>
                       <th> Symbol </th>
                       <th> Value </th>
                   </tr>
+              </table>
+          </div>
+          <br/>
+          <button onclick="showForwardPaths()" > Forward Paths</button>
+          <button onclick="showLoops()" > Loops </button>
+          <h3 id="pathslisttitle"> loops </h3>
+          <div style="height:150px;width:170px;overflow-y:auto" title="click on a symbol to change its value">
+              <table id="pathslist" class="mytable">
               </table>
           </div>
       </div>

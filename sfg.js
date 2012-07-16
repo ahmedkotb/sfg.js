@@ -217,6 +217,11 @@ SFG.prototype.mousedown = function(e){
 
         var selected = sfg.find(x,y);
 
+        //in case a marked path exists
+        if (selected != null && sfg.markedPath != null){
+            sfg.unMarkPath(sfg.markedPath);
+        }
+
         if (selected instanceof Node){
             sfg.state = STATES.NODE_MOVE;
             sfg.controlNode = null;
@@ -533,6 +538,10 @@ SFG.prototype.addEdge = function(edge){
 }
 
 SFG.prototype.deleteSelected = function(){
+
+    if (this.selected != null && this.markedPath != null)
+        this.unMarkPath(this.markedPath);
+
     if (this.selected instanceof Node){
         var id = this.selected.id;
         var nodes = this.nodes;
@@ -661,6 +670,7 @@ SFG.prototype.clear = function(){
 SFG.prototype.startSolve = function(callback){
     this.solveCallback = callback;
     if (this.selected instanceof Node){
+        this.srcNode = this.selected;
         this.state = STATES.DEST_WAIT_NODE;
         this.setStatus("please choose destination node");
     }else{
@@ -819,8 +829,14 @@ SFG.prototype.solve = function(srcLabel,destLabel){
 
     console.log("NUMERIC")
     console.log("( " + numeratorVal + " ) / ( " + deltaVal + " )");
+    var singleLoops = [];
+    for (i in loops[0])
+        singleLoops.push(loops[0][i][0]);
+
     return {sym:{num:numerator,delta:deltaSym},
-        numeric:{num:numeratorVal,delta:deltaVal}};
+        numeric:{num:numeratorVal,delta:deltaVal},
+        paths:paths, loops:singleLoops,
+        srcLabel:srcLabel, destLabel:destLabel};
 }
 
 SFG.prototype.getPaths = function(startNodeID,endNodeID){
@@ -929,8 +945,8 @@ SFG.prototype.getLoops = function(){
 
 SFG.prototype.unMarkPath = function(path){
 
-    for (var i=0;i<this.nodes.length;i++){
-        var node = this.ndoes[path.nodes[i]];
+    for (var i=0;i<path.nodes.length;i++){
+        var node = this.nodes[path.nodes[i]];
         node.tag = "";
         node.setUnMarked();
     }

@@ -1,23 +1,24 @@
-table#symtable{
+.mytable {
     border-collapse:collapse;
+    cursor:pointer;
 }
-table#symtable th{
+.mytable th{
     background-color:#A7C942;
     border:1px solid black;
     color:#fff;
     text-align:center;
 }
-table#symtable td{
+.mytable td{
     text-align:center;
     border:1px solid black;
     width:150px
 }
-table#symtable tr.even{
+.mytable tr.even{
     background-color:#eee;
     border:1px solid black;
     width:150px
 }
-table#symtable tr.odd{
+.mytable tr.odd{
     background-color:#fff;
     border:1px solid black;
     width:150px
