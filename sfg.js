@@ -871,7 +871,7 @@ SFG.prototype.getPaths = function(startNodeID,endNodeID){
 SFG.prototype.dfs = function(nodeID,destID,paths,visited,stack){
     visited[nodeID] = true;
     stack.push(nodeID);
-    for (n in this.graph[nodeID]){
+    for (var n in this.graph[nodeID]){
         if (n == destID){
             path = stack.slice(0,stack.length);
             path.push(destID);
@@ -888,7 +888,7 @@ SFG.prototype.getLoops = function(){
     var singleLoops = [];
     var visited = {};
     for (i in this.nodes){
-        nodeID = this.nodes[i].id;
+        var nodeID = this.nodes[i].id;
         var paths = [];
         this.dfs(nodeID,nodeID,paths,visited,[]);
         visited[nodeID] = true;
@@ -929,9 +929,9 @@ SFG.prototype.getLoops = function(){
                 if (nonTouching){
                     var newLoopArray = [];
                     var ids = [];
-                    for (var j=0;j<loopArray.length;j++){
-                        newLoopArray.push(loopArray[j]);
-                        ids.push(loopArray[j].id);
+                    for (var l=0;l<loopArray.length;l++){
+                        newLoopArray.push(loopArray[l]);
+                        ids.push(loopArray[l].id);
                     }
                     newLoopArray.push(singleLoops[i]);
                     ids.push(singleLoops[i].id);
