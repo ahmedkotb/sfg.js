@@ -11,7 +11,7 @@
 
             function init(){
                 var canvas = document.getElementById("canvas");
-                sfg = new SFG(canvas);
+                sfg = new sfgjs.SFG(canvas);
                 refreshSymbolsTable();
             }
 
@@ -234,7 +234,7 @@
           <button onclick="showForwardPaths()" > Forward Paths</button>
           <button onclick="showLoops()" > Loops </button>
           <h3 id="pathslisttitle"> loops </h3>
-          <div style="height:150px;width:170px;overflow-y:auto" title="click on a symbol to change its value">
+          <div style="height:150px;width:170px;overflow-y:auto" title="click on a path or a loop to mark it">
               <table id="pathslist" class="mytable">
               </table>
           </div>
