@@ -406,11 +406,18 @@ SFG.prototype.setSelectedLabel = function(label){
                 this.symbols[label] = {value:1.0,count:1};
             else
                 this.symbols[label].count++;
+
+            this.selected.label = label;
         }else if (this.selected instanceof Node){
-            delete this.nodeMap[this.selected.label];
-            this.nodeMap[label] = this.selected;
+            if (this.nodeMap[label] == null){
+                delete this.nodeMap[this.selected.label];
+                this.nodeMap[label] = this.selected;
+                this.selected.label = label;
+            }else{
+                //already existing label
+                this.setStatus("node with same label already exists");
+            }
         }
-        this.selected.label = label;
         this.redraw();
     }
 }
