@@ -155,6 +155,7 @@ function SFG(canvas){
 
         //status line displayed at the top of the canvas
         this.statusLine = "";
+        this.statusRemovable = true;
 
         canvas.addEventListener('mousedown',this.mousedown,false);
         canvas.addEventListener('mouseup',this.mouseup,false);
@@ -205,6 +206,13 @@ SFG.prototype.mousedown = function(e){
     var state = this.sfg.state;
     var sfg = this.sfg;
 
+    if (sfg.statusRemovable){
+        var width = this.ctx.measureText(sfg.statusLine).width;
+        var start = (this.width - width)/2;
+        var end = start + width;
+        if (x >= start && x <= end && y >= 0 && y <= 25)
+            sfg.setStatus("",false);
+    }
     //scale and translate factors
     x -= sfg.transX; y -= sfg.transY;
     x /= sfg.scale; y /= sfg.scale;
@@ -249,7 +257,7 @@ SFG.prototype.mousedown = function(e){
             sfg.selectItem(selected);
             sfg.srcNode = selected;
             sfg.state = STATES.DEST_WAIT_NODE;
-            sfg.setStatus("please choose destination node");
+            sfg.setStatus("please choose destination node",false);
         }
     }else if (state == STATES.DEST_WAIT_NODE){
         var selected = sfg.find(x,y);
@@ -258,7 +266,7 @@ SFG.prototype.mousedown = function(e){
             var result = sfg.solve(sfg.srcNode.label,selected.label);
             sfg.solveCallback(result);
             sfg.state = STATES.NORMAL;
-            sfg.setStatus("");
+            sfg.setStatus("",false);
         }
     }else if (state == STATES.EDGE_WAIT_NODE1){
         //sfg.newEdge must be initialized to empty edge
@@ -353,7 +361,7 @@ SFG.prototype.keydown = function(e){
                 || this.state == STATES.DEST_WAIT_NODE){
             this.state = STATES.NORMAL;
             this.selectItem(null);
-            this.setStatus("");
+            this.setStatus("",false);
         }else if (this.state == STATES.NORMAL
                 || this.state == NODE_MOVE){
             this.controlNode = null;
@@ -415,7 +423,7 @@ SFG.prototype.setSelectedLabel = function(label){
                 this.selected.label = label;
             }else{
                 //already existing label
-                this.setStatus("node with same label already exists");
+                this.setStatus("node with same label already exists",true);
             }
         }
         this.redraw();
@@ -598,8 +606,9 @@ SFG.prototype.deleteEdge = function(edge){
         delete this.symbols[edge.label];
 }
 
-SFG.prototype.setStatus = function(status){
+SFG.prototype.setStatus = function(status,removable){
     this.statusLine = status;
+    this.statusRemovable = removable;
     this.redraw();
 }
 
@@ -626,10 +635,10 @@ SFG.prototype.redraw = function(){
 
         this.ctx.stroke();
     }
+
     //draw status line
     this.ctx.fillStyle = "#000000";
     var width = this.ctx.measureText(this.statusLine).width;
-    //this.ctx.font = "bold 11pt Courir";
     this.ctx.font = "normal 11pt Arial";
     this.ctx.fillText(this.statusLine,(this.canvas.width-width)/2,15);
 
@@ -679,10 +688,10 @@ SFG.prototype.startSolve = function(callback){
     if (this.selected instanceof Node){
         this.srcNode = this.selected;
         this.state = STATES.DEST_WAIT_NODE;
-        this.setStatus("please choose destination node");
+        this.setStatus("please choose destination node",false);
     }else{
         this.state = STATES.SRC_WAIT_NODE;
-        this.setStatus("please choose source node");
+        this.setStatus("please choose source node",false);
     }
 }
 
