@@ -33,11 +33,7 @@
                 if (sfg.isSomethingSelected()){
                     sfg.deleteSelected();
                     refreshSymbolsTable();
-                    srcLabel = "";
-                    destLabel = "";
-                    paths = null;
-                    loops = null;
-                    showPaths(null);
+                    clearSolution();
                 }
             }
 
@@ -79,6 +75,15 @@
                     var textNode = document.createTextNode(prefix + " " + i);
                     cell.appendChild(textNode);
                 }
+            }
+
+            function clearSolution(){
+                srcLabel = "";
+                destLabel = "";
+                paths = null;
+                loops = null;
+                showPaths(null);
+                document.getElementById("results").innerHTML = "";
             }
 
             function solve(){
@@ -190,6 +195,7 @@
                     if (label){
                         sfg.setSelectedLabel(label);
                         refreshSymbolsTable();
+                        clearSolution();
                     }
                 }
             }
