@@ -185,8 +185,11 @@
             }
 
             function clearAll(){
-                sfg.clear();
-                refreshSymbolsTable();
+                if (confirm("Are you sure ?")){
+                    sfg.clear();
+                    refreshSymbolsTable();
+                    clearSolution();
+                }
             }
 
             function editLabel(){
@@ -203,7 +206,7 @@
   </head>
   <body onload = "init()">
       <div align="center">
-          <h2>SFG</h2>
+          <h2>Signal Flow Graph Solver</h2>
       </div>
       <div>
           <button id= "addNode" onclick="addNode()" > add node </button>
@@ -214,8 +217,8 @@
           <button id= "clear" onclick="clearAll()" > clear</button>
           <button id= "zoomIn" onclick="sfg.zoomIn()" > + </button>
           <button id= "zoomOut" onclick="sfg.zoomOut()" > - </button>
-          <button id= "solve" onclick="solve()" > Solve </button>
           <button id= "editLabel" onclick="editLabel()" > Edit Label</button>
+          <button id= "solve" onclick="solve()" > Solve </button>
           <br/>
           <div width="600px" style = "float:left;margin-right:20px">
               <canvas id="canvas" width="800px" height="400px" style="border:solid;">

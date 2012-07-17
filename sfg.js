@@ -767,6 +767,11 @@ sfgjs.SFG.prototype = {
         var endNodeID = this.nodeMap[destLabel].id;
         var paths = this.getPaths(startNodeID,endNodeID);
         var loops = this.getLoops();
+        if (paths.length == 0){
+            this.setStatus("no forward paths between source and destination",true);
+            this.state = sfgjs.STATES.NORMAL;
+            return;
+        }
         //calculate main delta and paths delta
         var deltaSym = "1";
         var deltaVal = 1;
