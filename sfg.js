@@ -783,6 +783,8 @@ sfgjs.SFG.prototype = {
         this.redraw();
     },
     startSolve : function(callback){
+        if (this.nodes.length == 0)
+            return;
         this.solveCallback = callback;
         if (this.selected instanceof sfgjs.Node){
             this.srcNode = this.selected;

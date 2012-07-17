@@ -59,6 +59,9 @@
                     row.onclick = function(){
                         sfg.markPath(path);
                     }
+
+                    row.title = "Gain : " + path.gain() +
+                        "\n" + "Gain value : " + path.gainValue(sfg.symbols);
                 }
                 if (paths == null)
                     return;
@@ -72,7 +75,7 @@
                     clickFunction(row,paths[i]);
 
                     var cell = row.insertCell(0);
-                    var textNode = document.createTextNode(prefix + " " + i);
+                    var textNode = document.createTextNode(prefix + " " + (i+1));
                     cell.appendChild(textNode);
                 }
             }
@@ -206,8 +209,12 @@
   </head>
   <body onload = "init()">
       <div align="center">
-          <h2>Signal Flow Graph Solver</h2>
+          <h2 style="margin-bottom:10px">Signal Flow Graph Solver</h2>
+          v 1.0 <br/>
+          Ahmed Kotb , kotbcorp [AT] gmail.com ,
+          <a href="https://twitter.com/ahmedkotb">@ahmedkotb</a>
       </div>
+      <hr/>
       <div>
           <button id= "addNode" onclick="addNode()" > add node </button>
           <button id= "addLineEdge" onclick="addLineEdge()" > add line edge </button>
@@ -236,15 +243,15 @@
           <br/>
           <button onclick="showForwardPaths()" > Forward Paths</button>
           <button onclick="showLoops()" > Loops </button>
-          <h3 id="pathslisttitle"> loops </h3>
-          <div style="height:150px;width:170px;overflow-y:auto" title="click on a path or a loop to mark it">
+          <h3 id="pathslisttitle" title="click on a path or a loop to mark it"> loops </h3>
+          <div style="height:150px;width:170px;overflow-y:auto">
               <table id="pathslist" class="mytable">
               </table>
           </div>
       </div>
       <div style="clear:left">
-        <h2> Results </h2>
-        <div id="results" style="height:100px;width:800px;border:1px solid black;overflow:auto;padding:10px">
+        <br/>
+        <div id="results" style="height:80px;width:800px;border:1px solid black;overflow:auto;padding:10px">
         </div>
       </div>
 
