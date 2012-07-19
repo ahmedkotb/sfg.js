@@ -147,6 +147,7 @@ var sfgjs = {
             this.solveCallback = null;
 
             this.srcNode = null;
+            this.destNode = null;
 
             //status line displayed at the top of the canvas
             this.statusLine = "";
@@ -321,9 +322,9 @@ sfgjs.SFG.prototype = {
             var selected = sfg.find(x,y);
 
             //in case a marked path exists
-            if (selected != null && sfg.markedPath != null){
+            if (selected != null && sfg.markedPath != null)
                 sfg.unMarkPath(sfg.markedPath);
-            }
+
 
             if (selected instanceof sfgjs.Node){
                 sfg.state = sfgjs.STATES.NODE_MOVE;
@@ -349,7 +350,7 @@ sfgjs.SFG.prototype = {
         }else if (state == sfgjs.STATES.SRC_WAIT_NODE){
             var selected = sfg.find(x,y);
             if (selected instanceof sfgjs.Node){
-                sfg.selectItem(selected);
+                selected.setAsSource();
                 sfg.srcNode = selected;
                 sfg.state = sfgjs.STATES.DEST_WAIT_NODE;
                 sfg.setStatus("please choose destination node",false);
@@ -357,7 +358,8 @@ sfgjs.SFG.prototype = {
         }else if (state == sfgjs.STATES.DEST_WAIT_NODE){
             var selected = sfg.find(x,y);
             if (selected instanceof sfgjs.Node){
-                sfg.selectItem(selected);
+                selected.setAsDestination();
+                sfg.destNode = selected;
                 var result = sfg.solve(sfg.srcNode.label,selected.label);
                 sfg.solveCallback(result);
                 sfg.state = sfgjs.STATES.NORMAL;
@@ -392,6 +394,7 @@ sfgjs.SFG.prototype = {
                 sfg.controlNode = new sfgjs.ControlNode(edge);
             sfg.selectItem(edge);
         }
+
     },
     mouseup : function(e){
         e = e || window.e;
@@ -504,6 +507,7 @@ sfgjs.SFG.prototype = {
     },
     setSymbolValue : function(symbol,value){
         this.symbols[symbol].value = value;
+        this.clearSolution();
     },
     isSomethingSelected : function(){
         if (this.selected)
@@ -527,18 +531,20 @@ sfgjs.SFG.prototype = {
                         if (this.symbols[this.selected.label].count == 0)
                             delete this.symbols[this.selected.label];
                     }
+
+                    if (this.symbols[label] == undefined)
+                        this.symbols[label] = {value:1.0,count:1};
+                    else
+                        this.symbols[label].count++;
                 }
 
-                if (this.symbols[label] == undefined)
-                    this.symbols[label] = {value:1.0,count:1};
-                else
-                    this.symbols[label].count++;
-
+                this.clearSolution();
                 this.selected.label = label;
             }else if (this.selected instanceof sfgjs.Node){
                 if (this.nodeMap[label] == null){
                     delete this.nodeMap[this.selected.label];
                     this.nodeMap[label] = this.selected;
+                    this.clearSolution();
                     this.selected.label = label;
                 }else{
                     //already existing label
@@ -549,6 +555,8 @@ sfgjs.SFG.prototype = {
         }
     },
     startAddingNode : function(){
+        this.controlNode = null;
+        this.clearSolution();
         this.newNode = new sfgjs.Node(-1);
         this.newNode.label = "new";
         this.state = sfgjs.STATES.ADD_NODE;
@@ -564,6 +572,7 @@ sfgjs.SFG.prototype = {
         this.redraw();
     },
     startAddingLineEdge : function(){
+        this.clearSolution();
         if (this.selected instanceof sfgjs.Node){
             this.newEdge = new sfgjs.LineEdge(this.selected,null);
             this.state = sfgjs.STATES.EDGE_WAIT_NODE2;
@@ -573,6 +582,7 @@ sfgjs.SFG.prototype = {
         }
     },
     startAddingArcEdge : function(){
+        this.clearSolution();
         if (this.selected instanceof sfgjs.Node){
             this.newEdge = new sfgjs.ArcEdge(this.selected,null);
             this.state = sfgjs.STATES.EDGE_WAIT_NODE2;
@@ -587,11 +597,23 @@ sfgjs.SFG.prototype = {
 
         if (oldItem != null){
             oldItem.setUnselected();
+            if (oldItem instanceof sfgjs.Node){
+                if (this.srcNode != null && oldItem.id == this.srcNode.id)
+                    oldItem.setAsSource();
+                if (this.destNode != null && oldItem.id == this.destNode.id)
+                    oldItem.setAsDestination();
+            }
             needRedraw = true;
         }
 
         if (item != null){
             item.setSelected();
+            if (item instanceof sfgjs.Node){
+                if (this.srcNode != null && item.id == this.srcNode.id)
+                    item.setAsSource();
+                if (this.destNode != null && item.id == this.destNode.id)
+                    item.setAsDestination();
+            }
             needRedraw = true;
         }
 
@@ -658,6 +680,7 @@ sfgjs.SFG.prototype = {
                 this.symbols[edge.label].count+=1;
             return true;
         }
+        this.setStatus("An edge already exists between those two nodes",true);
         return false;
     },
     deleteSelected : function(){
@@ -689,6 +712,8 @@ sfgjs.SFG.prototype = {
             this.controlNode = null;
         }
 
+        if (this.selected != null)
+            this.clearSolution();
         this.selectItem(null);
     },
     deleteEdge : function(edge){
@@ -780,20 +805,28 @@ sfgjs.SFG.prototype = {
         this.nodeCounter = 0;
         this.symbols = {};
         this.nodeMap = {};
+        this.srcNode = null;
+        this.destNode = null;
+        this.redraw();
+    },
+    clearSolution : function(){
+        if (this.srcNode)
+            this.srcNode.setUnselected();
+        if (this.destNode)
+            this.destNode.setUnselected();
+        this.srcNode = null;
+        this.destNode = null;
         this.redraw();
     },
     startSolve : function(callback){
         if (this.nodes.length == 0)
             return;
+        this.controlNode = null;
+        this.clearSolution();
         this.solveCallback = callback;
-        if (this.selected instanceof sfgjs.Node){
-            this.srcNode = this.selected;
-            this.state = sfgjs.STATES.DEST_WAIT_NODE;
-            this.setStatus("please choose destination node",false);
-        }else{
-            this.state = sfgjs.STATES.SRC_WAIT_NODE;
-            this.setStatus("please choose source node",false);
-        }
+        this.selectItem(null);
+        this.state = sfgjs.STATES.SRC_WAIT_NODE;
+        this.setStatus("please choose source node",false);
     },
     solve : function(srcLabel,destLabel){
 
@@ -1074,9 +1107,12 @@ sfgjs.SFG.prototype = {
 
         for (var i=0;i<path.nodes.length;i++){
             var node = this.nodes[path.nodes[i]];
-            node.tag = "";
             node.setUnMarked();
         }
+        if (this.srcNode)
+            this.srcNode.setAsSource();
+        if (this.destNode)
+            this.destNode.setAsDestination();
 
         this.redraw();
     },
@@ -1104,13 +1140,24 @@ sfgjs.SFG.prototype = {
 sfgjs.Path.prototype = {
     gain : function(){
         var gain = "";
+        var symsCount = 0;
+
         for (var i=1;i<this.nodes.length;i++){
             var prev = this.nodes[i-1];
             var n = this.nodes[i];
-            gain += this.graph[prev][n].label;
-            if (i != this.nodes.length -1)
-                gain += ".";
+            if (this.graph[prev][n].label != "1"){
+                symsCount++;
+                gain += this.graph[prev][n].label;
+                if (i != this.nodes.length -1)
+                    gain += ".";
+            }
         }
+
+        //in case of path gain = 1*1*1*1 ...
+        if (symsCount == 0)
+            return "1";
+        if (gain.length > 1 && gain.charAt(gain.length-1)==".")
+            gain = gain.substr(0,gain.length-1);
         return gain;
     },
     gainValue : function(symTable){
@@ -1168,12 +1215,27 @@ sfgjs.Node.prototype = {
         ctx.restore();
     },
 
+    pointInside : function(x,y){
+        return Math.abs(this.x-x) < this.radius && Math.abs(this.y-y) < this.radius;
+    },
+
     setMarked : function(){
         this.color = sfgjs.DEFAULT_MARKED_COLOR;
     },
 
     setUnMarked : function(){
         this.color = sfgjs.DEFAULT_COLOR;
+        this.tag = "";
+    },
+
+    setAsSource : function(){
+        this.tag = "R";
+        this.color = "#700000"
+    },
+
+    setAsDestination : function(){
+        this.tag = "C";
+        this.color = "#700000"
     },
 
     setSelected : function(){
@@ -1182,11 +1244,9 @@ sfgjs.Node.prototype = {
 
     setUnselected : function(){
         this.color = sfgjs.DEFAULT_COLOR;
-    },
-
-    pointInside : function(x,y){
-        return Math.abs(this.x-x) < this.radius && Math.abs(this.y-y) < this.radius;
+        this.tag = "";
     }
+
 };
 
 //--------------------------------------------

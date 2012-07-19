@@ -16,15 +16,18 @@
             }
 
             function addNode(){
+                clearSolution();
                 sfg.startAddingNode();
             }
 
             function addLineEdge(){
+                clearSolution();
                 sfg.startAddingLineEdge();
                 refreshSymbolsTable();
             }
 
             function addArcEdge(){
+                clearSolution();
                 sfg.startAddingArcEdge();
                 refreshSymbolsTable();
             }
@@ -158,6 +161,7 @@
                             if (!isNaN(v)){
                                 sfg.setSymbolValue(symbol,v);
                                 refreshSymbolsTable();
+                                clearSolution();
                             }
                             else
                                 alert("Not a valid number");
@@ -199,9 +203,13 @@
                 if (sfg.isSomethingSelected()){
                     var label = prompt("New Label",sfg.getSelectedLabel());
                     if (label){
-                        sfg.setSelectedLabel(label);
-                        refreshSymbolsTable();
-                        clearSolution();
+                        if (isNaN(label)){
+                            sfg.setSelectedLabel(label);
+                            refreshSymbolsTable();
+                            clearSolution();
+                        }else{
+                            alert("Not a valid label");
+                        }
                     }
                 }
             }
@@ -210,7 +218,7 @@
   <body onload = "init()">
       <div align="center">
           <h2 style="margin-bottom:10px">Signal Flow Graph Solver</h2>
-          v 1.0 <br/>
+          v 1.1 <br/>
           Ahmed Kotb , kotbcorp [AT] gmail.com ,
           <a href="https://twitter.com/ahmedkotb">@ahmedkotb</a>
       </div>
