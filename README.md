@@ -2,6 +2,8 @@
 
 A [signal flow graph](http://en.wikipedia.org/wiki/Signal-flow_graph) solver made in javascript.
 
+<p align="center"><img src="https://github.com/ahmedkotb/sfg.js/blob/master/sfg.png?raw=true"></p>
+
 ## Features
 
 * no need for external libraries (just a modern browser).
@@ -17,4 +19,5 @@ Licensed under the [MIT license](http://en.wikipedia.org/wiki/MIT_License).
 ## Contact Info
 
 Ahmed Kotb
+
 kotbcorp AT gmail dot com
