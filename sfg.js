@@ -1,3 +1,8 @@
+/**
+ * @license Copyright (c) 2012 @ahmedkotb , kotbcorp [at] gmail.com
+ *
+ * See the file license.txt for copying permission.
+ */
 var sfgjs = {
     DEFAULT_RADIUS : 12,
     DEFAULT_COLOR : "#228b22",
@@ -994,7 +999,7 @@ sfgjs.SFG.prototype = {
     },
     getPaths : function(startNodeID,endNodeID){
         var paths = [];
-        this.dfs(startNodeID,endNodeID,paths,{},[]);
+        this.walk(startNodeID,endNodeID,paths,{},[]);
         var pathsArray= [];
         for (i in paths){
             var path = new sfgjs.Path(paths[i],this.graph);
@@ -1003,18 +1008,7 @@ sfgjs.SFG.prototype = {
         }
         return pathsArray;
     },
-    getPaths : function(startNodeID,endNodeID){
-        var paths = [];
-        this.dfs(startNodeID,endNodeID,paths,{},[]);
-        var pathsArray= [];
-        for (i in paths){
-            var path = new sfgjs.Path(paths[i],this.graph);
-            path.id = i;
-            pathsArray.push(path);
-        }
-        return pathsArray;
-    },
-    dfs : function(nodeID,destID,paths,visited,stack){
+    walk : function(nodeID,destID,paths,visited,stack){
         visited[nodeID] = true;
         stack.push(nodeID);
         for (var n in this.graph[nodeID]){
@@ -1024,7 +1018,7 @@ sfgjs.SFG.prototype = {
                 paths.push(path);
             }
             else if (!visited[n])
-                this.dfs(n,destID,paths,visited,stack);
+                this.walk(n,destID,paths,visited,stack);
         }
         visited[nodeID] = false;
         stack.pop();
@@ -1035,7 +1029,7 @@ sfgjs.SFG.prototype = {
         for (i in this.nodes){
             var nodeID = this.nodes[i].id;
             var paths = [];
-            this.dfs(nodeID,nodeID,paths,visited,[]);
+            this.walk(nodeID,nodeID,paths,visited,[]);
             visited[nodeID] = true;
             for (j in paths){
                 var l = new sfgjs.Path(paths[j],this.graph);
